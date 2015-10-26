@@ -945,14 +945,14 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>/n";
                 $html .= "            centerCrosshair.iconSize = new GSize(17, 17);\n";
                 $html .= "            centerCrosshair.iconAnchor = new GPoint(8, 8);\n";
                 $html .= "            centerCross = new GMarker(map.getCenter(), { icon: centerCrosshair, clickable: false }); map.addOverlay(centerCross);\n";
-                $html .= "            GEvent.addListener(map, \"drag\", function() { setCenterCross(); } );\n";
-                $html .= "            GEvent.addListener(map, \"resize\", function() { setCenterCross(); } );\n";
-                $html .= "            GEvent.addListener(map, \"zoomend\", function() { setCenterCross(); } );\n";
-                $html .= "            GEvent.addListener(map, \"wheelup\", function() { setCenterCross(); } );\n";
-                $html .= "            GEvent.addListener(map, \"wheeldown\", function() { setCenterCross(); } );\n";
                 $html .= "            function setCenterCross() {\n";
                 $html .= "                centerCross.setPoint(map.getCenter());\n";
                 $html .= "            };\n";
+                $html .= "            GEvent.addListener(map, \"drag\", setCenterCross);\n";
+                $html .= "            GEvent.addListener(map, \"resize\", setCenterCross);\n";
+                $html .= "            GEvent.addListener(map, \"zoomend\", setCenterCross);\n";
+                $html .= "            GEvent.addListener(map, \"wheelup\", setCenterCross);\n";
+                $html .= "            GEvent.addListener(map, \"wheeldown\", setCenterCross);\n";
                 if($clickcenter == "yes")
                 {
                     $html .= "            GEvent.addListener(map, \"click\", function(marker, point) { if(! marker) { map.panTo(point); map.setCenter(point); setCenterCross(); } } );\n";
