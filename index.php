@@ -84,6 +84,13 @@
 
     require_once('language.php');
 
+    print("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n" .
+          "    <head>\n" .
+          "        <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n" .
+          "        <link rel=\"stylesheet\" href=\"layout.css\" type=\"text/css\">\n" .
+          "        <link rel=\"shortcut icon\" href=\"favicon.ico\">\n" .
+          "        <title>$title_text (v$version_text)</title>\n");
+
     if (isset($overview))
     {
         trigger_error($lang["warning-overview-deprecated"]);
@@ -93,12 +100,7 @@
         $db = connect();
     } catch (PDOException $e) {
         $db = null;
-        $html  = " <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n";
-        $html .= "        <head>\n";
-        $html .= "            <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n";
-	$html .= "            <link rel=\"shortcut icon\" href=\"favicon.ico\">\n";
-	$html .= "            <title>$title_text (v" . $version_text . ")</title>\n";
-        $html .= "        </head>\n";
+        $html  = "        </head>\n";
         $html .= "        <body bgcolor=\"$bgcolor\">\n";
         $html .= "            <div align=center>\n";
 	$html .= "                $database_fail_text<br>\n";
@@ -191,12 +193,7 @@
 
         if ($num_users < 1 || $num_trips < 1 || $num_positions < 1 || $num_icons < 1)
         {
-            $html  = "    <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n";
-            $html .= "        <head>\n";
-            $html .= "            <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n";
-			$html .= "            <link rel=\"shortcut icon\" href=\"favicon.ico\">\n";
-            $html .= "            <title>$title_text (v" . $version_text . ")</title>\n";
-            $html .= "            <script src=\"https://maps.googleapis.com/maps/api/js?key=$googleapikey\" type=\"text/javascript\"></script>\n";
+            $html  = "            <script src=\"https://maps.googleapis.com/maps/api/js?key=$googleapikey\" type=\"text/javascript\"></script>\n";
 			$html .= "        </head>\n";
             $html .= "        <body bgcolor=\"$bgcolor\">\n";
             $html .= "            <div align=center>\n";
@@ -205,12 +202,7 @@
         }
         elseif (file_exists("install.php") || file_exists("database.sql"))
         {
-            $html  = "    <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n";
-            $html .= "        <head>\n";
-            $html .= "            <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"/>\n";
-			$html .= "            <link rel=\"shortcut icon\" href=\"favicon.ico\">\n";
-            $html .= "            <title>$title_text (v" . $version_text . ")</title>\n";
-            $html .= "            <script src=\"https://maps.googleapis.com/maps/api/js?key=$googleapikey\" type=\"text/javascript\"></script>\n";
+            $html  = "            <script src=\"https://maps.googleapis.com/maps/api/js?key=$googleapikey\" type=\"text/javascript\"></script>\n";
 			$html .= "        </head>\n";
             $html .= "        <body bgcolor=\"$bgcolor\">\n";
             $html .= "            <div align=center>\n";
@@ -242,13 +234,7 @@
 
             if(isset($_SESSION['ID']) || $public_page == "yes")
             {
-                $html  = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n";
-                $html .= "    <head>\n";
-                $html .= "        <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">\n";
-		$html .= "        <link rel=\"shortcut icon\" href=\"favicon.ico\">\n";
-                $html .= "        <title>$title_text (v" . $version_text . ")</title>\n";
-                $html .= "        <link rel=\"stylesheet\" href=\"layout.css\" type=\"text/css\">\n";
-                $html .= "        <link rel=\"stylesheet\" href=\"calendar-win2k-cold-1.css\" type=\"text/css\">\n";
+                $html  = "        <link rel=\"stylesheet\" href=\"calendar-win2k-cold-1.css\" type=\"text/css\">\n";
                 $html .= "        <script type=\"text/javascript\" src=\"calendar.js\"></script>\n";
                 $html .= "        <script type=\"text/javascript\" src=\"lang/calendar-en.js\"></script>\n";
                 $html .= "        <script type=\"text/javascript\" src=\"calendar-setup.js\"></script>\n";
@@ -717,12 +703,7 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
             else
             {
                 unset($_SESSION['ID']);
-		$html  = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">\n";
-                $html .= "    <head>\n";
-                $html .= "        <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n";
-	        $html .= "        <link rel=\"stylesheet\" href=\"layout.css\" type=\"text/css\">\n";
-                $html .= "        <title>$title_text (v" . $version_text . ")</title>\n";
-                $html .= "    </head>\n";
+                $html  = "    </head>\n";
                 $html .= "    <body bgcolor=\"$bgcolor\" OnLoad=\"placeFocus()\">\n";
                 $html .= "        <SCRIPT type=\"text/javascript\">\n";
                 $html .= "            function placeFocus() {\n";
