@@ -1,6 +1,11 @@
 <?php
 
-	require_once("config.php");
+    define("R_OK", 0);
+    define("R_TRIP_UNSPECIFIED", 6);
+    define("R_MISSING_TRIP", 7);
+    define("R_LOCKED_TRIP", 8);
+
+    require_once("database");
 	
   $requireddb = urldecode($_GET["db"]);     
   if ( $requireddb == "" || $requireddb < 8 )
@@ -10,18 +15,16 @@
   }	
 	
 	
-	if(!@mysql_connect("$DBIP","$DBUSER","$DBPASS"))
+    $db = connect_save();
+    if (is_null($db))
 	{
 		echo "Result:4";
 		die();
 	}
 	
-	mysql_select_db("$DBNAME");
-	
-		
 	// Check username and password
-	$username = mysql_real_escape_string($_GET["u"]);
-	$password = mysql_real_escape_string($_GET["p"]);
+	$username = $_GET["u"];
+	$password = $_GET["p"];
 	
 	// User not specified
 	if ( $username == "" || $password == "" )
@@ -30,46 +33,22 @@
 		die();
 	}
 	
-	$salt = "trackmeuser";
-	$password = MD5($salt.$password);
-	
-	$result=mysql_query("Select ID, Enabled FROM users WHERE username = '$username' and password='$password'");
-	if ( $row=mysql_fetch_array($result) )
-	{
-		$userid=$row['ID'];		// Good, user and password are correct.
-		
-		$enabled = $row['Enabled'];
-		if ($enabled == 0 )
-		{
+    $userid = $db->valid_login($username, $password);
+    if ($userid === NO_USER)
+    {
+        $userid = $db->create_login($username, $password);
+        if ($userid < 0)
+            result(2);
+    }
+    elseif ($userid === INVALID_CREDENTIALS)
+    {
+        result(1);  // user exists, password incorrect.
+    }
+    elseif ($userid === LOCKED_USER)
+    {
 			echo "User disabled. Please contact system administrator";
 			die();
-		}
-	}
-	else
-	{
-		$result=mysql_query("Select 1 FROM users WHERE username = '$username'");
-		$nume=mysql_num_rows($result);	
-		if ( $nume > 0 )
-		{
-			echo "Result:1"; // user exists, password incorrect.
-			die();
-		}					
-		
-		mysql_query("Insert into users (username,password) values('$username','$password')");			
-
-		$result=mysql_query("Select ID FROM users WHERE username = '$username' and password='$password'");
-		if ( $row=mysql_fetch_array($result) )
-		{
-			$userid=$row['ID'];	// User created correctly.	
-		}
-		else
-		{		
-			echo "Result:2"; // Unable to find user that was just created.
-			die();		
-		}
-		
-	}	
-	
+    }
 	
 	
 	$tripname = urldecode($_GET["tn"]);	
@@ -105,15 +84,14 @@
 	if( $action=="geticonlist")
 	{
 
-		$iconlist = "";
-		$result = mysql_query("select name from icons order by name");					
-		while( $row=mysql_fetch_array($result) )
+        $iconlist = "Result:0";
+        $result = $db->exec_sql("SELECT name FROM icons ORDER BY name");
+        while( $row=$result->fetch() )
 		{
-			$iconlist.=$row['name']."|";
+            $iconlist.= "|$row[name]";
 		}
 
-		$iconlist = substr($iconlist, 0, -1);		  
-		echo "Result:0|$iconlist";
+        echo $iconlist;
 		die();
 	}
 		
@@ -122,161 +100,94 @@
 
 	if($action=="upload")
 	{				
-		$tripid = 'null';
-		$locked = 0;
 		
 		if ( $tripname != "" )
 		{			
-			$result=mysql_query("Select ID, Locked FROM trips WHERE FK_Users_ID = '$userid' and name='$tripname'");
-			if ( $row=mysql_fetch_array($result) )
-			{
-				$tripid=$row['ID'];		
-				$locked=$row['Locked'];		
-			}
-			else // Trip doesn't exist. Let's create it.
-			{
-				mysql_query("Insert into trips (FK_Users_ID,Name) values('$userid','$tripname')");				
-				
-				$result=mysql_query("Select ID, Locked FROM trips WHERE FK_Users_ID = '$userid' and name='$tripname'");
-				if ( $row=mysql_fetch_array($result) )
-				{
-					$tripid=$row['ID'];							
-					$locked=$row['Locked'];		
-				}
-				
-				if ( $tripid == 'null' )
-				{
-					echo "Result:6"; // Unable to create trip.
-					die();					
-				}				
-			}
+            $tripid = get_trip();
+            // Trip doesn't exist. Let's create it.
+            if (is_null($tripid))
+            {
+                $db->exec_sql("INSERT INTO trips (FK_Users_ID,Name) VALUES (?, ?)",
+                              $userid, $tripname);
+            }
+            $tripid = get_trip();
+            if (is_null($tripid))
+            {
+                result(R_TRIP_UNSPECIFIED);
+            }
 		}
+        else
+        {
+            $tripid = null;
+        }
 		
 		
-		if ( $locked==1 )
+        if ($tripid === false)
 		{
-			echo "Result:8"; // Trip is locked
-			die();								
+            result(R_LOCKED_TRIP);
 		}
 	
 		$lat = $_GET["lat"];
 		$long = $_GET["long"];
 		$dateoccurred = urldecode($_GET["do"]);		
-		$altitude = urldecode($_GET["alt"]);
-		$angle = urldecode($_GET["ang"]);
-		$speed = urldecode($_GET["sp"]);		
-		$iconname = urldecode($_GET["iconname"]);
 		$comments = urldecode($_GET["comments"]);		
-		$imageurl = urldecode($_GET["imageurl"]);		
 		$cellid = urldecode($_GET["cid"]);		
 		$signalstrength = urldecode($_GET["ss"]);		
 		$signalstrengthmax = urldecode($_GET["ssmax"]);		
 		$signalstrengthmin = urldecode($_GET["ssmin"]);		
-	  $batterystatus = urldecode($_GET["bs"]);	
 	  $uploadss = urldecode($_GET["upss"]);	
 	
 		
-		$iconid='null';		
+        $iconid = null;
 		if ($iconname != "" ) 
 		{
-				$result=mysql_query("Select ID FROM icons WHERE name = '$iconname'");
-				if ( $row=mysql_fetch_array($result) )
-					$iconid=$row['ID'];							
+            $icon_row = $db->exec_sql("SELECT ID FROM icons WHERE name = ?", $iconname)->fetch();
+            if ($icon_row)
+                $iconid = $icon_row['ID'];
 		}
 		
 
-		$sql = "Insert into positions (FK_Users_ID,FK_Trips_ID,latitude,longitude,dateoccurred,fk_icons_id,speed,altitude,comments,imageurl,angle,signalstrength,signalstrengthmax,signalstrengthmin,batterystatus) values('$userid',$tripid,'$lat','$long','$dateoccurred',$iconid,";
-			
-		if ($speed == "" ) 
-			$sql.="null,";
-		else
-			$sql.="'".$speed."',";					
-			
-	  if ($altitude == "" ) 
-			$sql.="null,";
-		else
-			$sql.="'".$altitude."',";										
-			
-		if ($comments == "" ) 
-			$sql.="null,";
-		else
-			$sql.="'".$comments."',";		
+        $params = array($userid, $tripid, $lat, $long, $dateoccurred, $iconid);
+        foreach array("sp", "alt", "comments", "imageurl", "ang") as $param
+        {
+            $params[] = get_nulled($param);
+        }
+        foreach array("ss", "ssmax", "ssmin") as $param
+        {
+            if ($uploadss == 1)
+                $params[] = get_nulled($param);
+            else
+                $params[] = null;
+        }
+        $params[] = get_nulled("bs");
 
-		if ($imageurl == "" ) 
-			$sql.="null,";
-		else
-			$sql.="'".$imageurl."',";					
-			
-		if ($angle == "" ) 
-			$sql.="null,";
-		else
-			$sql.="'".$angle."',";		
-			
-		if ($uploadss == 1 )
-		{
-			if ($signalstrength == "" ) 
-				$sql.="null,";
-			else
-				$sql.=$signalstrength.",";								
-				
-			if ($signalstrengthmax == "" ) 
-				$sql.="null,";
-			else
-				$sql.=$signalstrengthmax.",";								
-				
-			if ($signalstrengthmin == "" ) 
-				$sql.="null,";
-			else
-				$sql.=$signalstrengthmin.",";														
-		}
-		else
-			$sql.="null,null,null,";
-			
-		if ($batterystatus == "" ) 
-			$sql.="null";
-		else
-			$sql.=$batterystatus;																	
-
-			
-			
-		$sql.=")";
+        $result = $db->exec_sql("INSERT INTO positions (FK_Users_ID, FK_Trips_ID, latitude, longitude, " .
+                                "dateoccurred, FK_Icons_ID, speed, altitude, comments, imageurl, " .
+                                "angle, signalstrength, signalstrengthmax, signalstrengthmin, " .
+                                "batterystatus) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                $params);
 		
 
-		$result = mysql_query($sql);	
 		if (!$result) 
 		{
-			echo "Result:7|".mysql_error();		
-			die();		
+            result(R_MISSING_TRIP, $db->errorInfo()[2]);
 		}
 		
 		$upcellext = urldecode($_GET["upcellext"]);				
 		if ($upcellext == 1 && $cellid != "" )
 		{
-			$sql = "Insert into cellids(cellid,latitude,longitude,signalstrength,signalstrengthmax,signalstrengthmin) values ('$cellid','$lat','$long',";
-			
-			if ($signalstrength == "" ) 
-				$sql.="null,";
-			else
-				$sql.=$signalstrength.",";								
-			
-			if ($signalstrengthmax == "" ) 
-				$sql.="null,";
-			else
-				$sql.=$signalstrengthmax.",";								
-			
-			if ($signalstrengthmin == "" ) 
-				$sql.="null";
-			else
-				$sql.=$signalstrengthmin;							
-				
-			$sql.=")";			
-					
-			mysql_query($sql);
+            $params = array($cellid, $lat, $long);
+            foreach array("ss", "ssmax", "ssmin") as $param
+            {
+                $params[] = get_nulled($param);
+            }
+            $db->exec_sql("INSERT INTO cellids(cellid, latitude, longitude, signalstrength, " .
+                          "signalstrengthmax, signalstrengthmin) values (?, ?, ?, ?, ?, ?)",
+                          $params);
 		}
 
 		
-		echo "Result:0";		
-		die();		
+        result();
 	}
 	
 	
@@ -290,7 +201,7 @@
 	
 		
 	if($action=="updatepositiondata" || $action=="updateimageurl")
-	{		
+			
 		$id = urldecode($_GET["id"]);		
 		$ignorelocking = urldecode($_GET["ignorelocking"]);
 		
@@ -356,35 +267,26 @@
 		
 		 		 
 		mysql_query($sql);		 	 
-		echo "Result:0";
-  	die();	
+        result();
 	}
 	
 	
 	if($action=="delete")
 	{	
-		 $locked = 0;
-		 $tripid = "";
-		 $result=mysql_query("Select ID,Locked FROM trips WHERE FK_Users_ID = '$userid' and name='$tripname'");
-		 if ( $row=mysql_fetch_array($result) )
-		 {
-		 	 $tripid=$row['ID'];
-			 $locked = $row['Locked'];
-			 
-			 if ( $locked == 1 )
-			 {
-			 		echo "Result:8";	
-			 		die();
-			 }
-		 }
-		 else
-		 {
-		 	  echo "Result:7"; // trip not found.
-				die();					
-		 }	 	
+        $where = array("FK_Users_ID = ?");
+        $params = array($userid);
+        if ($tripname === "<None>")
+        {
+            $where[] = "FK_Trips_ID is NULL";
+        }
+        elseif ($tripname)
+        {
+            $tripid = test_trip();
+            $where[] = "FK_Trips_ID = ?";
+            $params[] = $tripid;
+        }
 		
 		if ( $tripname == "<None>" )			
-			$sql = "DELETE FROM positions WHERE FK_Trips_ID is null ";
 		else if ( $tripname != "" )
 			$sql = "DELETE FROM positions WHERE FK_Trips_ID='$tripid' ";
 		else
@@ -396,15 +298,22 @@
 		$dateto = urldecode($_GET["dt"]);
 		
 		if ( $datefrom != "" )
-			$sql.=" and DateOccurred>='$datefrom' ";
+        {
+            $where[] = "DateOccurred >= ?";
+            $params[] = $datefrom;
+        }
 		if ( $dateto != "" )
-			$sql.=" and DateOccurred<='$dateto' ";			
+        {
+            $where[] = "DateOccurred <= ?";
+            $params[] = $dateto;
+        }
+
 			
 						
-		mysql_query($sql);
+        $where = implode(" AND ", $where);
+        $db->exec_sql("DELETE FROM positions WHERE $where", $params);
 		
-		echo "Result:0";
-		die();		
+        result();
 	} 	
 	
 	if($action=="deletepositionbyid")
@@ -414,32 +323,33 @@
 		{
 			echo "Result:6";
 			die();		
+            result(R_UNSPECIFIED_TRIP);
 		}
 		
 		$locked = 0;
-		$result=mysql_query("Select Locked FROM trips A1 INNER JOIN positions A2 ON A2.FK_TRIPS_ID=A1.ID WHERE A2.FK_Users_ID = '$userid' and A2.ID='$positionid'");
-		if ( $row=mysql_fetch_array($result) )
+        $result = $db->exec_sql("SELECT Locked FROM trips A1 " .
+                                "INNER JOIN positions A2 ON A2.FK_TRIPS_ID=A1.ID " .
+                                "WHERE A2.FK_Users_ID = ? and A2.ID = ?",
+                                $userid, $positionid);
+        if ( $row=$result->fetch() )
 		{
 			 $locked = $row['Locked'];			 
 			 if ( $locked == 1 )
 			 {
-			 		echo "Result:8";	
-			 		die();
+                result(R_LOCKED_TRIP);
 			 }
 		}
 		else
 		{
-			 echo "Result:7"; // trip not found.
-			 die();					
+            result(R_MISSING_TRIP);
 		}	 	
 		
 			
-		$sql = "DELETE FROM positions WHERE ID='$positionid' AND FK_USERS_ID='$userid'";
+        $db->exec_sql("DELETE FROM positions WHERE ID='?' AND FK_USERS_ID='?'",
+                      $positionid, $userid);
 						
-		mysql_query($sql);
 		
-		echo "Result:0";
-		die();		
+        result();
 	}
 	
 
@@ -609,8 +519,10 @@
 			die();
 		}
 		
-		$result=mysql_query("Select ID,Locked,Comments FROM trips WHERE FK_Users_ID = '$userid' and name='$tripname'");
-		if ( $row=mysql_fetch_array($result) )
+        $result = $db->exec_sql("SELECT ID, Locked, Comments FROM trips " .
+                                "WHERE FK_Users_ID = '?' and name='?'",
+                                $userid, $tripname);
+		if ( $row=$result->fetch() )
 		{
 			 $output.=$row['ID']."|".$row['Locked']."|".$row['Comments']."\n";    		  
 		}
@@ -714,136 +626,64 @@
 	
 	if ( $action=="updatetripdata" )
 	{				
-		 if ( $tripname == "" )
-		 {
-			echo "Result:6"; // trip not specified
-		 	die();
-		 }
 		 
 		 $tripid = "";
 		 $locked = 0;
-		 $result=mysql_query("Select ID, Locked FROM trips WHERE FK_Users_ID = '$userid' and name='$tripname'");
-		 if ( $row=mysql_fetch_array($result) )
-		 {
-			 $tripid=$row['ID'];		
-			 $locked = $row['Locked'];
-			 
-			 if ( $locked == 1 )
-			 {
-			 		echo "Result:8";	
-			 		die();
-			 }
-		 }
-		 else
-		 {
-		 	  echo "Result:7"; // trip not found.
-				die();					
-		 }	 	
-		 
-	 
-		 $sql = "Update trips set ";
+        $tripid = test_trip();
 		 
 		 if ( isset($_GET["comments"]))
 		 {
 				$comments = urldecode($_GET["comments"]);
 		 			 
-		 		if ( $comments != "" )
-					$sql.=" comments='$comments',";
-				else
-					$sql.=" comments=null,";				
+		 		if (!$comments)
+                $comments = null;
+            $db->exec_sql("UPDATE trips SET comments = ? " .
+                          "WHERE id = ? AND FK_Users_ID = ?",
+                          $comments, $tripid, $userid);
 		 }
 		 	 		 		 
-		 $sql.="id=id where id='$tripid' AND FK_Users_ID = '$userid'";
-		 		 
-		 mysql_query($sql);		 	 
-		 echo "Result:0";
-  	 die();			 	
+        result();
 	}	
 	
 	if ( $action=="updatelocking" )
 	{				
-		 if ( $tripname == "" )
-		 {
-			echo "Result:6"; // trip not specified
-		 	die();
-		 }
-		 
-		 $tripid = "";
-		 $result=mysql_query("Select ID FROM trips WHERE FK_Users_ID = '$userid' and name='$tripname'");
-		 if ( $row=mysql_fetch_array($result) )
-		 {
-			 $tripid=$row['ID'];		
-		 }
-		 else
-		 {
-		 	  echo "Result:7"; // trip not found.
-				die();					
-		 }	 	
-		 
+        $tripid = test_trip(null, true);
 		 $locked = urldecode($_GET["locked"]);
 		 
-		 $sql = "Update trips set locked='$locked' where id='$tripid' AND FK_Users_ID = '$userid'";
-		 		 		 		 
-		 mysql_query($sql);		 	 
-		 echo "Result:0";
-  	 die();			 	
+        $db->exec_sql("UPDATE trips SET locked=? WHERE id=?",
+                      $tripid);
+        result();
 	}
 	
 	if ( $action=="deletetrip" )
 	{		
-		 if ( $tripname == "" )
-		 {
-			echo "Result:6"; // trip not specified
-		 	die();
-		 }
-		 		 
-		 $tripid = "";
-		 $locked = 0;
-		 $result=mysql_query("Select ID, Locked FROM trips WHERE FK_Users_ID = '$userid' and name='$tripname'");
-		 if ( $row=mysql_fetch_array($result) )
-		 {
-			 $tripid=$row['ID'];		
-			 $locked = $row['Locked'];
-			 
-			 if ( $locked == 1 )
-			 {
-			 		echo "Result:8";	
-			 		die();
-			 }
-			 
-			 mysql_query("delete from positions where fk_trips_id='$tripid' AND FK_Users_ID = '$userid'");
-			 mysql_query("delete from trips where id='$tripid' AND FK_Users_ID = '$userid'");			 			 
-			 
-			 echo "Result:0";
-			 die();			 
-		 }
-		 else
-		 {
-		 	  echo "Result:7"; // trip not found.
-				die();					
-		 }	 		
+        $tripid = test_trip();
+        $db->exec_sql("DELETE FROM positions WHERE FK_Trips_ID=? AND FK_Users_ID = ?",
+                      $tripid, $userid);
+        $db->exec_sql("DELETE FROM trips WHERE ID=? AND FK_Users_ID = ?",
+                      $tripid, $userid);
+        result();
 	}
 	
 	if ( $action=="addtrip" )
 	{				
 		 if ( $tripname == "" )
 		 {
-			echo "Result:6"; // trip not specified
-		 	die();
+            result(R_TRIP_UNSPECIFIED);
 		 }
 		 	 		 
-		 mysql_query("Insert into trips (name,fk_users_id) values ('$tripname','$userid')");		 	 
-		 echo "Result:0";
-  	 die();			 	
+        $tripid = get_trip($tripname);
+        if (!is_null($tripid))
+        {
+            result(10); // new name already exists
+        }
+        $db->exec_sql("INSERT INTO trips (Name, FK_Users_ID) VALUES (?, ?)",
+                      $tripname, $userid);
+        result();
 	}	
 	
 	if ( $action=="renametrip" )
 	{				
-		 if ( $tripname == "" )
-		 {
-			echo "Result:6"; // trip not specified
-		 	die();
-		 }
 		 
 		 $newname = $_GET["newname"];		 
 		 if ( $newname == "" )
@@ -852,37 +692,78 @@
 		 	die();
 		 }
 		 
-		 
-		 $locked = 0;
-		 $result=mysql_query("Select Locked FROM trips WHERE FK_Users_ID = '$userid' and name='$tripname'");
-		 if ( $row=mysql_fetch_array($result) )
-		 {
-			 $locked = $row['Locked'];
-			 
-			 if ( $locked == 1 )
-			 {
-			 		echo "Result:8";	
-			 		die();
-			 }
-		 }
-		 else
-		 {
-		 	  echo "Result:7"; // trip not found.
-				die();					
-		 }	 	
-		 
-		 
-		 $result=mysql_query("Select ID FROM trips WHERE FK_Users_ID = '$userid' and name='$newname'");			
-		 if ( $row=mysql_fetch_array($result) )
+        $tripid = test_trip();
+        $new_id = get_trip($newname);
+        if (!is_null($new_id))
 		 {
 		 		echo "Result:10"; // new name already exists
 		 		die();
 		 }		
 		 		 
-		 mysql_query("Update trips set name='$newname' where name='$tripname' AND FK_Users_ID = '$userid'");		 	 
-		 echo "Result:0";
-  	 die();			 	
+        $db->exec_sql("UPDATE trips SET Name = ? WHERE ID = ?",
+                      $newname, $tripid);
+        result();
 	}	
+
+    function get_trip($name=null, $allow_locked=false)
+    {
+        global $db, $userid;
+        $result = $db->exec_sql("Select ID, Locked FROM trips WHERE FK_Users_ID = '?' and name='?'",
+                                $userid, $name);
+        if ($row=$result->fetch())
+        {
+            if (!&allow_locked && $row['Locked'] == 1)
+                return false;
+            else
+                return $row['ID'];
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+
+    function test_trip($name=null, $allow_locked=false)
+    {
+        global $tripname;
+        if (is_null($name))
+            $name = $tripname;
+        if (!$name)
+        {
+            result(R_TRIP_UNSPECIFIED); // trip not specified
+        }
+        $tripid = get_trip($name)
+        if ($tripid === false)
+        {
+            result(R_LOCKED_TRIP);
+        }
+        elseif (is_null($tripid))
+        {
+            result(R_MISSING_TRIP); // trip not found.
+        }
+        else
+        {
+            return $tripid;
+        }
+    }
+
+    function get_nulled($name)
+    {
+        $value = urldecode($_GET[$name]);
+        if ($value !== "")
+            return $value;
+        else
+            return null;
+    }
+
+    function result($id=R_OK, $message="")
+    {
+        if ($message)
+            $message = "|$message"
+        echo "Result:$id$message";
+        exit();
+    }
 
 ?>
 
