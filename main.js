@@ -29,12 +29,11 @@ Trip.prototype.lastMarker = function()
     return this.markers[this.markers.length - 1];
 }
 
-Trip.prototype.appendMarker = function(data, icon)
+Trip.prototype.appendMarker = function(data, lastMarker)
 {
     data.index = this.markers.length;
     data.trip = this;
-    if (icon === true)
-        icon = getIcon(data);
+    var icon = getIcon(data, lastMarker);
     var point = new google.maps.LatLng(data.latitude, data.longitude);
     var marker = new google.maps.Marker({position: point,
                                          icon: icon});
@@ -98,7 +97,11 @@ Trip.prototype.avgSpeed = function()
 
 function getIcon(data, lastMarker)
 {
-    if (data.index == 0)
+    if ('iconurl' in data)
+    {
+        return data['iconurl'];
+    }
+    else if (data.index == 0)
     {
         return iconGreen;
     }

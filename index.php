@@ -952,22 +952,13 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
                     $row['ImageURL'] = escape_js_str($row['ImageURL']);
                     $row['Comments'] = escape_js_str($row['Comments']);
 
-                    if (!is_null($row['URL']))
-                    {
-                        $parameter = "'$row[URL]'";
-                    }
-                    elseif($rounds < $count)
-                    {
-                        $parameter = "true";
-                    }
-                    else
-                    {
-                        $parameter = "iconRed";
-                    }
-
                     $dataParameter = "";
+                    if (!is_null($row['URL']))
+                        $dataParameter .= ", iconurl: '$row[URL]'";
                     if (!is_null($row['Angle']))
                         $dataParameter .= ", bearing: $row[Angle]";
+
+                    $parameter = ($rounds === count($tripData) ? "true" : "false");
 
                     $formattedTS = escape_js_str(date($date_format, strtotime($row['DateOccurred'])));
 
