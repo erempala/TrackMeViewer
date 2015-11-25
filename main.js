@@ -37,11 +37,13 @@ Trip.prototype.appendMarker = function(data, lastMarker)
     data.trip = this;
     data.isFiltered = function()
     {
-        var show = !filter.photo && !filter.comments;
-        if (filter.photo && this['photo'])
-            show = true;
-        if (filter.comment && this['comments'])
-            show = true;
+        var show = false;
+        if (this['photo'])
+            show = show || document.getElementById("photo").checked;
+        if (this['comment'])
+            show = show || document.getElementById("comment").checked;
+        else if (!this['photo'])
+            show = show || document.getElementById("normal").checked;
         return show;
     }
     var point = new google.maps.LatLng(data.latitude, data.longitude);
@@ -136,7 +138,7 @@ Trip.prototype.avgSpeed = function()
 Trip.prototype.applyFilter = function()
 {
     var visible = 0;
-    if (filter.last20)
+    if (document.getElementById("last20").checked)
         var maxVisible = 20;
     else
         var maxVisible = -1;

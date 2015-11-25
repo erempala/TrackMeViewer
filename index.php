@@ -417,50 +417,39 @@ if($public_page == "yes")
                 $html .= "                            <input type=\"hidden\" name=\"storeenddate\" value=\"$storeenddate\">\n";
 		$html .= "                            <input type=\"hidden\" name=\"database_data\" value=\"$trip_button_text\">\n";
                 $html .= "                            </form>\n";
-                $html .= "                        <form name=\"form_filter\" action=\"index.php?showmapdata=1\" method=\"post\">\n";
-		$html .= "                        $filter_title\n<br>";
-                $html .= "                            <select name=\"filter\" class=\"pulldownlayout\">\n";
-                if($filter == "Photo")
+
+                $filters = array("photo" => false, "comment" => false, "normal" => false);
+                if ($filter == "Photo")
+                    $filters["photo"] = true;
+                elseif ($filter == "Comment")
+                    $filters["comment"] = true;
+                elseif ($filter == "PhotoComment")
                 {
-                    $html .= "                            <option value=\"None\">$filter_none_text</option>\n";
-                    $html .= "                            <option value=\"Photo\" SELECTED>$filter_photo_text</option>\n";
-                    $html .= "                            <option value=\"Comment\">$filter_comment_text</option>\n";
-                    $html .= "                            <option value=\"PhotoComment\">$filter_photo_comment_text</option>\n";
-                    $html .= "                            <option value=\"Last20\">$filter_last_20</option>\n";
-                }
-                elseif($filter == "Comment")
-                {
-                    $html .= "                            <option value=\"None\">$filter_none_text</option>\n";
-                    $html .= "                            <option value=\"Photo\">$filter_photo_text</option>\n";
-                    $html .= "                            <option value=\"Comment\" SELECTED>$filter_comment_text</option>\n";
-                    $html .= "                            <option value=\"PhotoComment\">$filter_photo_comment_text</option>\n";
-                    $html .= "                            <option value=\"Last20\">$filter_last_20</option>\n";
-                }
-                elseif($filter == "PhotoComment")
-                {
-                    $html .= "                            <option value=\"None\">$filter_none_text</option>\n";
-                    $html .= "                            <option value=\"Photo\">$filter_photo_text</option>\n";
-                    $html .= "                            <option value=\"Comment\">$filter_comment_text</option>\n";
-                    $html .= "                            <option value=\"PhotoComment\" SELECTED>$filter_photo_comment_text</option>\n";
-                    $html .= "                            <option value=\"Last20\">$filter_last_20</option>\n";
-                }
-                elseif($filter == "Last20")
-                {
-                    $html .= "                            <option value=\"None\">$filter_none_text</option>\n";
-                    $html .= "                            <option value=\"Photo\">$filter_photo_text</option>\n";
-                    $html .= "                            <option value=\"Comment\">$filter_comment_text</option>\n";
-                    $html .= "                            <option value=\"PhotoComment\">$filter_photo_comment_text</option>\n";
-                    $html .= "                            <option value=\"Last20\" SELECTED>$filter_last_20</option>\n";
+                    $filters["photo"] = true;
+                    $filters["comment"] = true;
                 }
                 else
                 {
-                    $html .= "                            <option value=\"None\" SELECTED>$filter_none_text</option>\n";
-                    $html .= "                            <option value=\"Photo\">$filter_photo_text</option>\n";
-                    $html .= "                            <option value=\"Comment\">$filter_comment_text</option>\n";
-                    $html .= "                            <option value=\"PhotoComment\">$filter_photo_comment_text</option>\n";
-                    $html .= "                            <option value=\"Last20\">$filter_last_20</option>\n";
-				}
-                $html .= "                            </select>\n";
+                    $filters["photo"] = true;
+                    $filters["comment"] = true;
+                    $filters["normal"] = true;
+                }
+
+
+                $html .= "                        <form name=\"form_filter\" action=\"index.php?showmapdata=1\" method=\"post\">\n";
+		$html .= "                        $filter_title\n<br>";
+                $html .= "                        <label for=\"photo\">\n";
+                $html .= "                            <input type=\"checkbox\" name=\"filter\" value=\"Photo\" id=\"photo\"" . get_selected($filters['photo'], "checked") . " onclick=\"window.trip.applyFilter()\">$filter_photo_text\n";
+                $html .= "                        </label><br>\n";
+                $html .= "                        <label for=\"comment\">\n";
+                $html .= "                            <input type=\"checkbox\" name=\"filter\" value=\"Comment\" id=\"comment\"" . get_selected($filters['comment'], "checked") . " onclick=\"window.trip.applyFilter()\">$filter_comment_text\n";
+                $html .= "                        </label><br>\n";
+                $html .= "                        <label for=\"normal\">\n";
+                $html .= "                            <input type=\"checkbox\" name=\"filter\" value=\"Normal\" id=\"normal\"" . get_selected($filters['normal'], "checked") . " onclick=\"window.trip.applyFilter()\">Normal\n";
+                $html .= "                        </label><br>\n";
+                $html .= "                        <label for=\"last20\">\n";
+                $html .= "                            <input type=\"checkbox\" name=\"filter\" value=\"Last20\" id=\"last20\"" . get_selected($filter === "Last20", "checked") . " onclick=\"window.trip.applyFilter()\">$filter_last_20\n";
+                $html .= "                        </label>\n";
                 $html .= "                            <input type=\"hidden\" name=\"ID\" value=\"$ID\">\n";
                 $html .= "                            <input type=\"hidden\" name=\"trip\" value=\"$trip\">\n";
 		$html .= "                            <input type=\"hidden\" name=\"storeshowbearings\" value=\"$storeshowbearings\">\n";
@@ -503,7 +492,6 @@ if($public_page == "yes")
                 $startday = $tripData[0]['DateOccurred'];
                 $endday = $tripData[count($tripData) - 1]['DateOccurred'];
 
-                $html .= "                         <input type=\"submit\" class=\"buttonlayout\"  name=\"filter_data\" value=\"$filter_button_text\"><br><br><br>\n";
                 $html .= "                         <div> $startdate_text </div> <input type=\"text\" class=\"textinputfield\" id=\"startday\" name=\"startday\" value=\"$startday\"><br>\n";
                 $html .= "                         <div> $enddate_text </div>  <input type=\"text\" class=\"textinputfield\" id=\"endday\" name=\"endday\" value=\"$endday\">\n";
 				$html .= "					<script type=\"text/javascript\">\n";
@@ -693,28 +681,6 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
                 $html .= "                var tripname = '" . escape_js_str($tripnameText) . "';\n";
                 $html .= "                var trip = trips[$tripIndex] = new Trip(tripname, '" . escape_js_str($username) . "');\n";
                 $html .= "                userid = '$ID';\n";
-                $jsFilter = array('false', 'false', 'false');
-                if($filter == "Photo")
-                {
-                    $jsFilter[0] = 'true';
-                }
-                elseif($filter == "Comment")
-                {
-                    $jsFilter[1] = 'true';
-                }
-                elseif($filter == "PhotoComment")
-                {
-                    $jsFilter[0] = 'true';
-                    $jsFilter[1] = 'true';
-                }
-                elseif($filter == "Last20")
-                {
-                    $jsFilter[2] = 'true';
-                }
-
-                $html .= "                filter = {photo: $jsFilter[0],\n";
-                $html .= "                          comments: $jsFilter[1],\n";
-                $html .= "                          last20: $jsFilter[2]};\n";
                 if ($show_bearings == "yes") {
                     $html .= "                var showBearings = true;\n";
                 } else {
@@ -862,5 +828,13 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
     function escape_js_str($str)
     {
         return str_replace("'", "\\'", str_replace("\\", "\\\\", $str));
+    }
+
+    function get_selected($bool, $str="selected")
+    {
+        if ($bool)
+            return " $str=\"$str\"";
+        else
+            return "";
     }
 ?>
