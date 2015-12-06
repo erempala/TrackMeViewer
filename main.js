@@ -1,4 +1,5 @@
 var info = new google.maps.InfoWindow();
+var infoData = null;
 var iconRed = 'red-dot.png';
 var iconLtBlue = 'mm_20_gray.png';
 var iconLtYellow = 'mm_20_yellow.png';
@@ -99,7 +100,8 @@ Trip.prototype.appendMarker = function(data, lastMarker)
                       leadingZeros(totalTime / 60 % 60) + ':' +
                       leadingZeros(totalTime % 60))
     marker.addListener("click", function() {
-        info.setContent(createMarkerText(data));
+        infoData = marker.data;
+        updateInfoData();
         info.open(map, marker);
     });
     marker.setMap(map);
@@ -197,6 +199,7 @@ function updateFromJSON(text)
         }
         trips[id].loadJSON(tripData);
     }
+    updateInfoData();
 }
 
 var isRunning = null;
@@ -266,6 +269,12 @@ function createMarkerText(data)
     }
     html += "        <tr><td colspan='2'>&nbsp;<\/td><\/tr><\/table>";
     return html
+}
+
+function updateInfoData()
+{
+    if (infoData)
+        info.setContent(createMarkerText(infoData));
 }
 
 function leadingZeros(number)
