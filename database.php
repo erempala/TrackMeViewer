@@ -45,6 +45,26 @@
             return $result[0][0];
         }
 
+        function _log($obj=null)
+        {
+            if (is_a($obj, "PDOStatement"))
+            {
+                $query = $obj->queryString;
+            }
+            else
+            {
+                if (is_null($obj))
+                    $query = null;
+                else
+                    $query = $obj;
+                $obj = $this;
+            }
+            if (!is_null($query))
+                error_log("Error in query: $query");
+            $e = $obj->errorInfo();
+            error_log("SQL Error info: $e[0]:$e[1]:$e[2]");
+        }
+
         function exec_sql()
         {
             $args = func_get_args();
@@ -56,6 +76,10 @@
             else
                 $args = array_slice($args, 1);
             $stmt = $this->prepare($statement);
+            if (!$stmt) {
+                $this->_log($statement);
+                return false;
+            }
             foreach ($args as $name => $value) {
                 if (is_numeric($name)) {
                     $name++;
@@ -67,7 +91,10 @@
             if ($stmt->execute())
                 return $stmt;
             else
+            {
+                $this->_log($stmt);
                 return false;
+            }
         }
 
         private function static_hash($password)
