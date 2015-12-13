@@ -629,21 +629,14 @@ $html .= "                </FORM> <br>    \n";
                     }
                 }
 
-                $result = $db->exec_sql("SELECT * FROM positions " .
+                $result = $db->exec_sql("SELECT positions.*, icons.url as URL FROM positions " .
+                                        "LEFT JOIN icons ON positions.FK_Icons_ID = icons.ID " .
                                         "WHERE FK_Users_ID=? $where " .
                                         "ORDER BY DateOccurred $limit", $params);
 
-$rounds      = 1;
-                while($row = $result->fetch())
-	{
-
-                    $endday = $row['DateOccurred'];
-			if($rounds == 1)
-			{
-                        $startday = $endday;
-			}
-		$rounds++;
-	}
+                $tripData = $result->fetchAll();
+                $startday = $tripData[0]['DateOccurred'];
+                $endday = $tripData[count($tripData) - 1]['DateOccurred'];
 
 				if(isset($_REQUEST[last_location]))   //if we are in live tracking then display this in center
 				{
@@ -843,94 +836,34 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
                 }
 
                 // Write configuration to JS
+                $jsFilter = array('false', 'false', 'false');
+                if($filter == "Photo")
+                {
+                    $jsFilter[0] = 'true';
+                }
+                elseif($filter == "Comment")
+                {
+                    $jsFilter[1] = 'true';
+                }
+                elseif($filter == "PhotoComment")
+                {
+                    $jsFilter[0] = 'true';
+                    $jsFilter[1] = 'true';
+                }
+                elseif($filter == "Last20")
+                {
+                    $jsFilter[2] = 'true';
+                }
+
+                $html .= "                filter = {photo: $jsFilter[0],\n";
+                $html .= "                          comments: $jsFilter[1],\n";
+                $html .= "                          last20: $jsFilter[2]};\n";
                 if ($show_bearings == "yes") {
                     $html .= "                var showBearings = true;\n";
                 } else {
                     $html .= "                var showBearings = false;\n";
                 }
                 $html .= "                var useMetric = " . ($units == "metric" ? "true" : "false") . ";\n\n";
-
-                $params = array();
-                if (isset($_REQUEST[last_location]))  //show last location is on
-                {
-                    $where = "";
-                    $limit = 1;
-                    $showmapdata = 1;
-                }
-                else
-                {
-                    if($filter == "Photo")
-                    {
-                        $where = "ImageURL != ''";
-                        $limit = 0;
-                    }
-                    elseif($filter == "Comment")
-                    {
-                        $where = "Comments != ''";
-                        $limit = 0;
-                    }
-                    elseif($filter == "PhotoComment")
-                    {
-                        $where = "(Comments != '' OR ImageURL != '')";
-                        $limit = 0;
-                    }
-                    elseif($filter == "Last20")
-                    {
-                        $where = "";
-                        $limit = 20;
-                    }
-                    else
-                    {
-                        $where = "";
-                        $limit = 0;
-                    }
-                    if ($where != "")
-                        $where .= " AND";
-
-                    if ($tripname != "Any")
-                    {
-                        if ($tripname == "None")
-                        {
-                            $count = 0;
-                        }
-                        else
-                        {
-                            // TODO: use parameters
-                            $count = $db->get_count("positions " .
-                                                    "WHERE FK_Users_ID='$ID' AND " .
-                                                    "FK_Trips_ID='$trip' AND " .
-                                                    "DateOccurred BETWEEN '$startday' AND '$endday'");
-                        }
-                        if ($count == 0)
-                            $where .= " FK_Trips_ID is NULL AND";
-                        else
-                        {
-                            $where .= " FK_Trips_ID=? AND";
-                            $params[] = $trip;
-                        }
-                    }
-                    $where .= " DateOccurred BETWEEN ? AND ? AND";
-                    $params[] = $startday;
-                    $params[] = $endday;
-                }
-                if ($limit > 0)
-                    $limit = " DESC LIMIT $limit";
-                else
-                    $limit = "";
-
-                if ($showmap != "yes" && $showmapdata != 1)
-                    $params[] = 'ZZ';
-                else
-                    $params[] = $ID;
-
-                $query = $db->exec_sql("SELECT positions.*, icons.URL FROM positions " .
-                                       "LEFT JOIN icons ON positions.FK_Icons_ID=icons.ID " .
-                                       "WHERE $where FK_Users_ID=? " .
-                                       "ORDER BY DateOccurred $limit",
-                                       $params);
-
-                $result = $query->fetchAll();
-                $count = count($result);
 
                 if ($tripname == "Any")
                 {
@@ -945,9 +878,9 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
                 $tripnameText = $tripname;
               	}
                 $html .= "            var trip = new Trip('" . escape_js_str($tripnameText) . "', '" . escape_js_str($username) . "');\n";
-                for ($rounds = 1; $rounds <= $count; $rounds++)
+                for ($rounds = 0; $rounds < count($tripData); $rounds++)
                 {
-                    $row = $result[$rounds - 1];
+                    $row = $tripData[$rounds];
                     // escape the strings for JS
                     $row['ImageURL'] = escape_js_str($row['ImageURL']);
                     $row['Comments'] = escape_js_str($row['Comments']);
@@ -958,7 +891,7 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
                     if (!is_null($row['Angle']))
                         $dataParameter .= ", bearing: $row[Angle]";
 
-                    $parameter = ($rounds === count($tripData) ? "true" : "false");
+                    $parameter = ($rounds === count($tripData) - 1 ? "true" : "false");
 
                     $formattedTS = escape_js_str(date($date_format, strtotime($row['DateOccurred'])));
 
@@ -974,6 +907,7 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
                     $html .= "        map.fitBounds(bounds); \n";
                 }
                 $html .= "                map.setCenter(bounds.getCenter());\n";
+                $html .= "        trip.applyFilter();\n";
                 $html .= "            //]]>\n";
                 $html .= "            </script>\n";
 			}

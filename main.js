@@ -33,9 +33,18 @@ Trip.prototype.appendMarker = function(data, lastMarker)
 {
     data.index = this.markers.length;
     data.trip = this;
+    data.isFiltered = function()
+    {
+        var show = !filter.photo && !filter.comments;
+        if (filter.photo && this['photo'])
+            show = true;
+        if (filter.comment && this['comments'])
+            show = true;
+        return show;
+    }
     var icon = getIcon(data, lastMarker);
     var point = new google.maps.LatLng(data.latitude, data.longitude);
-    var marker = new google.maps.Marker({position: point,
+    var marker = new google.maps.Marker({position: point, visible: false,
                                          icon: icon});
     if (data.photo)
         this.pcount++;
@@ -92,6 +101,27 @@ Trip.prototype.avgSpeed = function()
         return this.totalDistance() * 1000 / totalTime;
     } else {
         return 0;
+    }
+}
+
+Trip.prototype.applyFilter = function()
+{
+    var visible = 0;
+    if (filter.last20)
+        var maxVisible = 20;
+    else
+        var maxVisible = -1;
+    for (i = this.markers.length - 1; i >= 0; i--)
+    {
+        var marker = this.markers[i];
+        var show = marker.data.isFiltered();
+        if (show)
+        {
+            visible++;
+            if (maxVisible >= 0 && maxVisible < visible)
+                show = false
+        }
+        marker.setVisible(show);
     }
 }
 
