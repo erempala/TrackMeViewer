@@ -11,6 +11,8 @@ for (angle = 0; angle < 360; angle += 45)
     arrowIcons.push('arrow' + angle + '.png');
 }
 
+var trips = [];
+
 function Trip(name, user)
 {
     this.name = name;
@@ -42,10 +44,41 @@ Trip.prototype.appendMarker = function(data, lastMarker)
             show = true;
         return show;
     }
-    var icon = getIcon(data, lastMarker);
     var point = new google.maps.LatLng(data.latitude, data.longitude);
-    var marker = new google.maps.Marker({position: point, visible: false,
-                                         icon: icon});
+    var marker = new google.maps.Marker({position: point, visible: false});
+    marker.updateIcon = function(lastMarker)
+    {
+        if ('iconurl' in this.data)
+        {
+            var icon = this.data['iconurl'];
+        }
+        else if (this.data.index == 0)
+        {
+            var icon = iconGreen;
+        }
+        else if (lastMarker !== undefined && lastMarker)
+        {
+            var icon = iconRed;
+        }
+        else if (showBearings && 'bearing' in this.data)
+        {
+            var direction = Math.floor((this.data.bearing + 22.5) / 45) % 8;
+            var icon = arrowIcons[direction];
+        }
+        else if (this.data['photo'])
+        {
+            var icon = iconLtYellow;
+        }
+        else if (this.data['comment'])
+        {
+            var icon = iconLtPurple;
+        }
+        else
+        {
+            var icon = iconLtBlue;
+        }
+        this.setIcon(icon);
+    }
     if (data.photo)
         this.pcount++;
     if (data.comments)
@@ -70,18 +103,14 @@ Trip.prototype.appendMarker = function(data, lastMarker)
     marker.setMap(map);
     bounds.extend(marker.getPosition());
     marker.data = data;
+    marker.updateIcon(lastMarker);
     this.markers.push(marker);
     this.polyline.getPath().push(point);
     document.getElementById("dis").innerHTML = toMiles(this.totalDistance()).toFixed(2);
-    if (document.getElementById("alt") === null) {
-        document.getElementById("time").innerHTML = this.lastMarker().data.totalTime;
-        document.getElementById("pcount").innerHTML = this.pcount;
-        document.getElementById("ccount").innerHTML = this.ccount;
-        document.getElementById("avgspeed").innerHTML = toMiles(this.avgSpeed() * 3.6).toFixed(2);
-    } else {
-        document.getElementById("speed").innerHTML = toMiles(data.speed);
-        document.getElementById("alt").innerHTML = toFeet(data.altitude);
-    }
+    document.getElementById("time").innerHTML = this.lastMarker().data.totalTime;
+    document.getElementById("pcount").innerHTML = this.pcount;
+    document.getElementById("ccount").innerHTML = this.ccount;
+    document.getElementById("avgspeed").innerHTML = toMiles(this.avgSpeed() * 3.6).toFixed(2);
     return marker;
 }
 
@@ -125,37 +154,74 @@ Trip.prototype.applyFilter = function()
     }
 }
 
-function getIcon(data, lastMarker)
+Trip.prototype.loadJSON = function(tripData)
 {
-    if ('iconurl' in data)
+    if (this.markers.length > 0 && tripData.pos.length > 0)
+        // Reset the icon for the last marker (if it exists) and new items are
+        // going to be added
+        this.lastMarker().updateIcon();
+    console.log('Going to add ' + tripData.pos.length + ' entries');
+    for (i = 0; i < tripData.pos.length; i++)
     {
-        return data['iconurl'];
+        var entry = tripData.pos[i];
+        entry.trip = this;
+        this.appendMarker(entry, i === tripData.pos.length - 1);
     }
-    else if (data.index == 0)
+    this.applyFilter();
+    if (tripData.pos.length > 0 && document.getElementById("follow").checked)
     {
-        return iconGreen;
+        map.panTo(this.lastMarker().getPosition());
     }
-    else if (lastMarker !== undefined && lastMarker)
+}
+
+function updateFromJSON(text)
+{
+    var data = JSON.parse(text);
+    if ('error' in data)
     {
-        return iconRed;
+        console.log(text);
+        document.getElementById("auto").checked = false;
+        return false;
     }
-    else if (showBearings && 'bearing' in data)
+    isRunning = setTimeout(update, 60 * 1000);
+    for (var id in data.trips)
     {
-        var direction = Math.floor((data.bearing + 22.5) / 45) % 8;
-        return arrowIcons[direction];
+        console.log('Load trip #' + id);
+        var tripData = data.trips[id];
+        if (!(id in trips))
+        {
+            console.log('Create new instance: ' + tripData.name);
+            trips[id] = new Trip(tripData.name, data.users[tripData.uid].name);
+        }
+        trips[id].loadJSON(tripData);
     }
-    else if (data['photo'])
+}
+
+var isRunning = null;
+function switchAutomatic()
+{
+    if (isRunning !== null)
     {
-        return iconLtYellow;
+        clearTimeout(isRunning);
+        isRunning = null;
     }
-    else if (data['comment'])
+    if (document.getElementById("auto").checked)
     {
-        return iconLtPurple;
+        update();
     }
+}
+
+function update()
+{
+    var trip = trips[tripid];
+    if (trip.markers.length > 0)
+        var start = '&start=' + trip.lastMarker().data.timestamp;
     else
-    {
-        return iconLtBlue;
-    }
+        var start = ''
+    if (tripid === '*')
+        start += '&onetrip='
+    query('track.php?userid=' + userid + '&tripid=' + tripid + start,
+          updateFromJSON)
 }
 
 function createMarkerText(data)

@@ -257,38 +257,8 @@
                 $html .= "        <script type=\"text/javascript\" src=\"lang.js\"></script>\n";
 		$html .= "    </head>\n";
 
-if(isset($_REQUEST[last_location])){
-$html .= "<BODY  onload=\"init_interval()\">\n";
-				   }
-				 else
-				  {
 $html .= "<BODY>\n";
-				  }
 $html .= "            <script type=\"text/javascript\">\n";
-$html .= "        function getValue(varname)      \n";
-$html .= "        {      \n";
-$html .= "          var url = window.location.href;      \n";
-$html .= "          var qparts = url.split(\"?\");      \n";
-$html .= "          if (qparts.length == 0)      \n";
-$html .= "          {      \n";
-$html .= "            return \"\";      \n";
-$html .= "          }      \n";
-$html .= "          var query = qparts[1];      \n";
-$html .= "          var vars = query.split(\"&\");      \n";
-$html .= "          var value = \"\";      \n";
-$html .= "          for (i=0;i<vars.length;i++)      \n";
-$html .= "          {      \n";
-$html .= "            var parts = vars[i].split(\"=\");      \n";
-$html .= "            if (parts[0] == varname)      \n";
-$html .= "            {      \n";
-$html .= "              value = parts[1];      \n";
-$html .= "              break;      \n";
-$html .= "            }      \n";
-$html .= "          }      \n";
-$html .= "          value = unescape(value);      \n";
-$html .= "          value.replace(/\+/g,\" \");      \n";
-$html .= "          return value;      \n";
-$html .= "        }      \n";
 
 $html .= "            		function showInfo()\n";
 $html .= "            		{\n";
@@ -302,17 +272,6 @@ $html .= "            			else\n";
 $html .= "            			{\n";
 $html .= "            			elem.style.display=\"none\";\n";
 $html .= "            		  	document.getElementById(\"showcfgbutton\").value = \"$showconfig_button_text\";\n";
-$html .= "            			}\n";
-$html .= "            		}\n";
-$html .= "            		function livetrack()\n";
-$html .= "            		{\n";
-$html .= "            			if(document.getElementById(\"last_location\").value == \"$location_button_text\")\n";
-$html .= "            			{\n";
-$html .= "            		  		location=\"index.php?last_location=yes&interval=60&zoomlevel=2\";\n";
-$html .= "            			}\n";
-$html .= "            			else\n";
-$html .= "            			{\n";
-$html .= "            		  		location=\"index.php\";\n";
 $html .= "            			}\n";
 $html .= "            		}\n";
 $html .= "            		function submittrip()\n";
@@ -376,11 +335,6 @@ if($public_page == "yes")
            {
            $html .= "<br><br><br><input type=\"button\" class=\"buttonlayout\" id=\"showcfgbutton\" value=\"$showconfig_button_text\" onClick=\"showInfo()\" >\n";
            }
-     if(isset($_REQUEST[last_location])) {
-           $html .= "<br><input type=\"button\" class=\"buttonlayout\" id=\"last_location\" value=\"$location_button_text_off\" onClick=\"livetrack()\"><br><br>\n";
-           } else {
-                  $html .= " <br><input type=\"button\" class=\"buttonlayout\" id=\"last_location\" value=\"$location_button_text\" onClick=\"livetrack()\"><br><br><br>\n";
-                  }
      $html .= "</form>\n";
 } else {
                 $finduser = $db->exec_sql("Select * FROM users WHERE ID = ? LIMIT 1", $ID);
@@ -394,18 +348,15 @@ if($public_page == "yes")
                        {
                        $html .= "<br><br><input type=\"button\" class=\"buttonlayout\" id=\"showcfgbutton\" value=\"$showconfig_button_text\" onClick=\"showInfo()\" >\n";
                        }
-                  if(isset($_REQUEST[last_location]))
-                       {
-                       $html .= "  <br><input type=\"button\" class=\"buttonlayout\" id=\"last_location\" value=\"$location_button_text_off\" onClick=\"livetrack()\"><br><br>\n";
-                       } else {
-                              $html .= " <br><input type=\"button\" class=\"buttonlayout\" id=\"last_location\" value=\"$location_button_text\" onClick=\"livetrack()\"><br><br>\n";
-                              }
-                 }
        }
+}
+            $html .= "<label for=\"auto\">\n";
+            $html .= "    <input type=\"checkbox\" value=\"on\" id=\"auto\" onclick=\"switchAutomatic();\">" . $lang["follow-switch"] . "\n";
+            $html .= "</label><br>\n";
+            $html .= "<label for=\"follow\">\n";
+            $html .= "    <input type=\"checkbox\" value=\"on\" id=\"follow\" checked=\"checked\">" . $lang["follow-last"] . "\n";
+            $html .= "</label>\n";
 
-if(isset($_REQUEST[last_location]))   //if we are in live tracking then display this in center
-      {
-      }else {
             $html .= "<form name=\"form_trip\" action=\"index.php\" method=\"post\">\n";
 
 
@@ -466,85 +417,6 @@ if(isset($_REQUEST[last_location]))   //if we are in live tracking then display 
                 $html .= "                            <input type=\"hidden\" name=\"storeenddate\" value=\"$storeenddate\">\n";
 		$html .= "                            <input type=\"hidden\" name=\"database_data\" value=\"$trip_button_text\">\n";
                 $html .= "                            </form>\n";
-				}
-				if(isset($_REQUEST[last_location])) //show last location is on
-				{
-
-$html .= "        <SCRIPT type=\"text/javascript\">      \n";
-$html .= "        function init_interval()      \n";
-$html .= "        {     \n";
-$html .= "        if (document.intervalclock.interval.value == \"-\"){  \n";
-$html .= "              document.intervalclock.interval.value = getValue(\"interval\");   \n";
-$html .= "                                                       }      \n";
-$html .= "        if (document.intervalclock.interval.value < 10){      \n";
-$html .= "                  alert(\"Minimum interval is 10 seconds\");  \n";
-$html .= "                t = 60;       \n";
-$html .= "                document.intervalclock.interval.value = 60;   \n";
-$html .= "              }else { \n";
-$html .= "                t = document.intervalclock.interval.value;    \n";
-$html .= "                    } \n";
-$html .= "        k = setTimeout('showclock()',1000);   \n";
-$html .= "        }     \n";
-$html .= "        function showclock()  \n";
-$html .= "        {     \n";
-$html .= "        t = t - 1;    \n";
-$html .= "        if (t == 0){if (document.intervalclock.interval.value < 10){  \n";
-$html .= "                  alert(\"Minimum interval is 10 seconds\");  \n";
-$html .= "                t = 60;       \n";
-$html .= "                document.intervalclock.interval.value = 60 ;  \n";
-$html .= "              }else { \n";
-$html .= "                if (document.zoomform.zoom.value == \"-\" )document.zoomform.zoom.value = 1 \n";
-$html .= "                window.location.href = (\"index.php?last_location=yes&interval=\" + document.intervalclock.interval.value + \"&zoomlevel=\" + document.zoomform.zoom.value); \n";
-$html .= "                    } \n";
-$html .= "                 }    \n";
-$html .= "        document.intervalclock.seconds.value = t;     \n";
-$html .= "        k = setTimeout('showclock()',1000);   \n";
-$html .= "        }     \n";
-$html .= "        </SCRIPT>     \n";
-
-$html .= "        <br><br><b><u>$tripstatus_title</u></b><br>\n";
-$html .= "        <table><tr><td align=right> \n";
-$html .= "        <FORM NAME=\"intervalclock\" action=\"post\">	\n";
-$html .= "        Interval:     \n";
-$html .= "        <INPUT TYPE=\"text\" CLASS=\"intervalinputfield\" NAME=\"interval\" VALUE=\"-\" size=\"1\">     \n";
-$html .= "        sec.     \n";
-$html .= "        <INPUT TYPE=\"button\" CLASS=\"intervalbutton\" NAME=\"start\" VALUE=\"Start\" onClick=\"clearTimeout(k);init_interval();\"><br>     \n";
-$html .= "        Reload:     \n";
-$html .= "        <INPUT TYPE=\"text\" CLASS=\"intervalinputfield\" NAME=\"seconds\" VALUE=\"-\" size=\"1\">     \n";
-$html .= "        sec.     \n";
-$html .= "        <INPUT TYPE=\"button\" CLASS=\"intervalbutton\" NAME=\"stop\" VALUE=\"Stop\" onClick=\"clearTimeout(k);document.intervalclock.seconds.value=document.intervalclock.interval.value;\">  \n";
-$html .= "        </FORM>     \n";
-$html .= "        </td></tr></table> \n";
-
-$html .= "        	  <FORM NAME=\"zoomform\" action=\"post\">      \n";
-$html .= "                <br><b><u>Zoom level Google Maps</u></b><br>\n";
-$html .= "                <SELECT class=\"pulldownlayout\" name=\"zoom\">      \n";
-$html .= "                <OPTION SELECTED value=0>Choose Zoomlevel     \n";
-$html .= "                <OPTION value=1>Zoomlevel 0     \n";
-$html .= "                <OPTION value=1>Zoomlevel 1     \n";
-$html .= "                <OPTION value=2>Zoomlevel 2     \n";
-$html .= "                <OPTION value=3>Zoomlevel 3     \n";
-$html .= "                <OPTION value=4>Zoomlevel 4     \n";
-$html .= "                <OPTION value=5>Zoomlevel 5     \n";
-$html .= "                <OPTION value=6>Zoomlevel 6     \n";
-$html .= "                <OPTION value=7>Zoomlevel 7     \n";
-$html .= "                <OPTION value=8>Zoomlevel 8     \n";
-$html .= "                <OPTION value=9>Zoomlevel 9     \n";
-$html .= "                <OPTION value=10>Zoomlevel 10     \n";
-$html .= "                <OPTION value=11>Zoomlevel 11     \n";
-$html .= "                <OPTION value=12>Zoomlevel 12     \n";
-$html .= "                <OPTION value=13>Zoomlevel 13     \n";
-$html .= "                <OPTION value=14>Zoomlevel 14     \n";
-$html .= "                <OPTION value=15>Zoomlevel 15     \n";
-$html .= "                <OPTION value=16>Zoomlevel 16     \n";
-$html .= "                <OPTION value=17>Zoomlevel 17     \n";
-$html .= "        	  </SELECT>      \n";
-$html .= "                </FORM> <br>    \n";
-
-			}
-				if(isset($_REQUEST[last_location]))   //if we are in live tracking then display this in center
-				{
-				} else {
                 $html .= "                        <form name=\"form_filter\" action=\"index.php?showmapdata=1\" method=\"post\">\n";
 		$html .= "                        $filter_title\n<br>";
                 $html .= "                            <select name=\"filter\" class=\"pulldownlayout\">\n";
@@ -599,34 +471,27 @@ $html .= "                </FORM> <br>    \n";
                 $html .= "                            <input type=\"hidden\" name=\"custom_view\" value=\"$custom_view\">\n";
                 $html .= "                        <input type=\"hidden\" name=\"storestartdate\" value=\"$storestartdate\">\n";
                 $html .= "                        <input type=\"hidden\" name=\"storeenddate\" value=\"$storeenddate\">\n";
-			}
 
                 $params = array($ID);
-                if(isset($_REQUEST[last_location]))
+                $limit = "";
+                if (intval($_REQUEST['tm']) > 0)
+                    $limit = "LIMIT " . intval($_REQUEST['tm']);
+                if ($tripname == "None")
+                    $where = " AND FK_Trips_ID is NULL";
+                elseif ($tripname != "Any")
                 {
-                    $limit = "DESC LIMIT 1";
-                    $where = "";
+                    $where = " AND FK_Trips_ID = ?";
+                    $params[] = $trip;
                 }
                 else
-                {
-                    $limit = "";
-                    if ($tripname == "None")
-                        $where = " AND FK_Trips_ID is NULL";
-                    elseif ($tripname != "Any")
-                    {
-                        $where = " AND FK_Trips_ID = ?";
-                        $params[] = $trip;
-                    }
-                    else
-                        $where = "";
+                    $where = "";
 
-                    // if startday is not blank then don't lookup the start and end of entire trip
-                    if (isset($startday) && trim($startday) != "")
-                    {
-                        $where .= " AND DateOccurred BETWEEN ? AND ?";
-                        $params[] = $startday;
-                        $params[] = $endday;
-                    }
+                // if startday is not blank then don't lookup the start and end of entire trip
+                if (isset($startday) && trim($startday) != "")
+                {
+                    $where .= " AND DateOccurred BETWEEN ? AND ?";
+                    $params[] = $startday;
+                    $params[] = $endday;
                 }
 
                 $result = $db->exec_sql("SELECT positions.*, icons.url as URL FROM positions " .
@@ -637,10 +502,6 @@ $html .= "                </FORM> <br>    \n";
                 $tripData = $result->fetchAll();
                 $startday = $tripData[0]['DateOccurred'];
                 $endday = $tripData[count($tripData) - 1]['DateOccurred'];
-
-				if(isset($_REQUEST[last_location]))   //if we are in live tracking then display this in center
-				{
-				} else {
 
                 $html .= "                         <input type=\"submit\" class=\"buttonlayout\"  name=\"filter_data\" value=\"$filter_button_text\"><br><br><br>\n";
                 $html .= "                         <div> $startdate_text </div> <input type=\"text\" class=\"textinputfield\" id=\"startday\" name=\"startday\" value=\"$startday\"><br>\n";
@@ -660,25 +521,17 @@ $html .= "                </FORM> <br>    \n";
 				$html .= "					}); \n";
 				$html .= "					</script> \n";
                $html .= "                        </form>\n";
-			   }
                $html .= "                       <br><b><u>$tripsummary_title</u></b><br>\n";
 
 
                                     $unit_suffix = ($units == "metric" ? "metric" : "imperial");
                                     $distance_unit = $lang["unit-distance-$unit_suffix"];
                                     $speed_unit = $lang["unit-speed-$unit_suffix"];
-                                    $height_unit = $lang["unit-height-$unit_suffix"];
-                                if(isset($_REQUEST[last_location])) //show last location is on
-                                {
-                            $html .= "<b>$lang[balloon_speed]: </b><span id=\"speed\">TBD</span> $speed_unit<br><b>$lang[balloon_altitude]: </b><span id=\"alt\">TBD</span> $height_unit<br><b>$lang[balloon_total_distance]: </b><span id=\"dis\">TBD</span> $distance_unit";
-                                        }
-                                else
-                                {
-                                        $html .= "$lang[balloon_total_distance]: <span id=\"dis\">TBD</span>&nbsp;" . $distance_unit . "<br>";
-                                        $html .= "                                                      $lang[summary_time] <span id=\"time\">TBD</span><br>\n";
-                                        $html .= "                                                      $lang[summary_photos] <span id=\"pcount\">TBD</span><br>\n";
-                                        $html .= "                                                      $lang[summary_comments] <span id=\"ccount\">TBD</span>\n";
-                                        $html .= "                                                      <div>$lang[balloon_avg_speed]: <span id=\"avgspeed\">TBD</span>&nbsp;$speed_unit</div>\n";
+                                    $html .= "$lang[balloon_total_distance]: <span id=\"dis\">TBD</span>&nbsp;" . $distance_unit . "<br>";
+                                    $html .= "                                                      $lang[summary_time] <span id=\"time\">TBD</span><br>\n";
+                                    $html .= "                                                      $lang[summary_photos] <span id=\"pcount\">TBD</span><br>\n";
+                                    $html .= "                                                      $lang[summary_comments] <span id=\"ccount\">TBD</span>\n";
+                                    $html .= "                                                      <div>$lang[balloon_avg_speed]: <span id=\"avgspeed\">TBD</span>&nbsp;$speed_unit</div>\n";
 
 // 2009-05-07 DMR Add Link to download the currently displayed data. -->
                                         $html .= "                                                    <br><br><b><u>Download Data</u></b><br>\n";
@@ -696,21 +549,13 @@ $html .= "                </FORM> <br>    \n";
                                         $html .= "                                                    <a href=\"download.php?a=gpx" . $ExportOptions . "\">GPX Format</a><br>\n";
 
 // 2009-05-07 DMR Add Link to download the currently displayed data. <--
-                                }
 
 
                     $html .= "</div></div>\n";
                     $html .= "                <div id=\"configsection\" style=\"display:none;\">\n";
                     $html .= "                    $display_options_title_text:\n";
 
-		    if(isset($_REQUEST[last_location])) {
-
-		    $html .= "                    <form name=\"form_display\" action=\"\" method=\"post\">\n";
-						        }
-						      else
-							{
                     $html .= "                    <form name=\"form_display\" action=\"index.php\" method=\"post\">\n";
-							}
                     if($show_bearings == "yes")
                     {
                         $html .= "                    <input type=\"checkbox\" name=\"setshowbearings\" CHECKED> $display_showbearing_text<br>\n";
@@ -754,10 +599,6 @@ $html .= "                </FORM> <br>    \n";
                     $html .= "                            <option value=\"metric\""; if($units == "metric") { $html .= " SELECTED"; } $html .= ">Metric</option>\n";
                     $html .= "                        </select> $display_units_text<br>\n";
                     $html .= "                        <br>\n";
-                    if(isset($_REQUEST[last_location]))
-                    {
-                        $html .= "                    <input type=\"hidden\" name=\"last_location\" value=\"$location_button_text\">\n";
-                    }
                     if(isset($filter))
                     {
                         $html .= "                    <input type=\"hidden\" name=\"filter\" value=\"$filter\">\n";
@@ -836,6 +677,22 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
                 }
 
                 // Write configuration to JS
+                if ($trip === "Any") {
+                    $tripnameText = $trip_any_text;
+                    $html .= "                var tripid = '*';\n";
+                    $tripIndex = "-1";
+                } elseif ($trip === "None") {
+                    $tripnameText = $trip_none_text;
+                    $html .= "                var tripid = -1;\n";
+                    $tripIndex = "-1";
+                } else {
+                    $tripnameText = $tripname;
+                    $html .= "                var tripid = $trip;\n";
+                    $tripIndex = $trip;
+                }
+                $html .= "                var tripname = '" . escape_js_str($tripnameText) . "';\n";
+                $html .= "                var trip = trips[$tripIndex] = new Trip(tripname, '" . escape_js_str($username) . "');\n";
+                $html .= "                userid = '$ID';\n";
                 $jsFilter = array('false', 'false', 'false');
                 if($filter == "Photo")
                 {
@@ -865,19 +722,6 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
                 }
                 $html .= "                var useMetric = " . ($units == "metric" ? "true" : "false") . ";\n\n";
 
-                if ($tripname == "Any")
-                {
-                $tripnameText = $trip_any_text;
-               	}
-               	elseif ($tripname == "None")
-               	{
-                $tripnameText = $trip_none_text;
-               	}
-              	else
-             	{
-                $tripnameText = $tripname;
-              	}
-                $html .= "            var trip = new Trip('" . escape_js_str($tripnameText) . "', '" . escape_js_str($username) . "');\n";
                 for ($rounds = 0; $rounds < count($tripData); $rounds++)
                 {
                     $row = $tripData[$rounds];
@@ -898,14 +742,7 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
                     $html .= "        trip.appendMarker({latitude: $row[Latitude], longitude: $row[Longitude], timestamp: '$row[DateOccurred]', speed: $row[Speed], altitude: $row[Altitude], comment: '$row[Comments]', photo: '$row[ImageURL]' $dataParameter, formattedTS: '$formattedTS'}, $parameter);\n";
                 }
 
-		if(isset($_REQUEST[last_location])) //show last location is on
-                                {
-                $html .= " 	map.setZoom(16 - document.zoomform.zoom.value); \n";
-			        }
-                else
-                {
-                    $html .= "        map.fitBounds(bounds); \n";
-                }
+                $html .= "        map.fitBounds(bounds); \n";
                 $html .= "                map.setCenter(bounds.getCenter());\n";
                 $html .= "        trip.applyFilter();\n";
                 $html .= "            //]]>\n";

@@ -28,8 +28,6 @@
                      "trip_none_text" => "trip-none",
                      "trip_any_text" => "trip-any",
                      "trip_button_text" => "trip-select",
-                     "location_button_text" => "live-tracking",
-                     "location_button_text_off" => "live-tracking-off",
                      "filter_title" => "filter-title",
                      "filter_none_text" => "filter-none",
                      "filter_photo_comment_text" => "filter-photo-comment",
