@@ -8,6 +8,8 @@
     "no-data": "One or more TrackMe tables in your database are empty. You must generate data by running the TrackMe application on your Windows Mobile device before the map display will work properly.",
     "database-fail": "Failed to connect to database. Display terminated.",
     "warning-overview-deprecated": "Google Maps JavaScript API deprecated the overview feature it has been removed from TrackMe Display.",
+    "warning-invalid-viewtype": "The map type '{0}' is unknown, please fix the $googleview configuration variable.",
+    "warning-old-viewtype": "Google Maps JavaScript API has changed the map type constants. The $googleview variable is set to '{0}' which corresponds to '{1}' in the new API.",
     "delete-trip-title": "Failed to delete trip.",
     "delete-trip-wrong-id": "No such trip id",
     "delete-trip-not-owner": "You are not the owner of that trip",

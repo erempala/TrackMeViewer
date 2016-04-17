@@ -599,6 +599,8 @@ if($public_page == "yes")
 sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
                     $html .= " </div>\n";
 
+
+                $oldview = $googleview;
                 if ($googleview === "G_NORMAL_MAP")
                     $googleview = "ROADMAP";
                 elseif ($googleview === "G_SATELLITE_MAP")
@@ -610,8 +612,17 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
 
                 if ($googleview !== "ROADMAP" && $googleview !== "SATELLITE" &&
                         $googleview !== "HYBRID" && $googleview !== "TERRAIN")
+                {
                     // Invalid option
                     $googleview = "ROADMAP";
+                    trigger_error($lang->get("warning-invalid-viewtype", $oldview),
+                                  E_USER_WARNING);
+                }
+                elseif ($googleview !== $oldview)
+                {
+                    trigger_error($lang->get("warning-old-viewtype", $oldview, $googleview));
+                }
+
 
                 $html .= "            <script type=\"text/javascript\">\n";
                 $html .= "            //<![CDATA[\n";

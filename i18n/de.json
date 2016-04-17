@@ -9,6 +9,8 @@
     "no-data": "Eine oder mehrere Tabellen in der Datenbank sind leer. TrackMe muss mindestens einmal auf dme Mobilen  Ger&#228;t gelaufen sein.",
     "database-fail": "Fehler bei Verbindung zur Datenbank. Die Anzeige wurde abgebrochen.",
     "warning-overview-deprecated": "Das Overview Feature der Google Maps JavaScript API ist veraltet und wurde aus TrackMe Display entfernt.",
+    "warning-invalid-viewtype": "Die Kartenansicht '{0}' ist unbekannt, und die $googleview Einstellung muss korrigiert werden.",
+    "warning-old-viewtype": "Die Namen der Kartenansichten der Google Maps JavaScript API wurden umbenannt. Die $googleview Einstellung ist aktuell '{0}' und entspricht '{1}' in der neuen Version.",
     "delete-trip-title": "Strecke konnte nicht gel\u00f6scht werden.",
     "delete-trip-wrong-id": "Die ID existiert nicht",
     "delete-trip-not-owner": "Die Strecke geh\u00f6rt jemanden anderen",

@@ -133,6 +133,28 @@
                     throw new LogicException("Unknown language key '$offset'");
             }
         }
+
+        public function get() {
+            $args = func_get_args();
+            $trans = $this[$args[0]];
+            $args = array_slice($args, 1);
+            return preg_replace_callback("/({+)(\d+)(}+)/", function ($matches) use (&$args) {
+                $number = (int) $matches[2];
+                if (strlen($matches[1]) == strlen($matches[3]) && array_key_exists($number, $args))
+                {
+                    if (strlen($matches[1]) % 2 == 0)
+                        $repl = $matches[2];
+                    else
+                        $repl = $args[$number];
+                    $count = floor(strlen($matches[1]) / 2);
+                    $before = str_repeat("{", $count);
+                    $after = str_repeat("}", $count);
+                    return $before . $repl . $after;
+                }
+                else
+                    return $matches[0];
+            }, $trans);
+        }
     }
 
     if (!isset($language))
