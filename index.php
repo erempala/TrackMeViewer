@@ -84,6 +84,11 @@
 
     require_once('language.php');
 
+    if (isset($overview))
+    {
+        trigger_error($lang["warning-overview-deprecated"]);
+    }
+
     try {
         $db = connect();
     } catch (PDOException $e) {

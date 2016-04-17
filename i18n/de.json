@@ -8,6 +8,7 @@
     "incomplete-install": "Installation wurde nicht erfolgreich beendet! Die Intallationsdateien index.php und database.sql befinden sich noch im TrackMe Ordner. Um die Kartenanzeige zu aktivieren, bitte die Dateien install.php und database.sql aus dem TrackMe Ordner entfernen.",
     "no-data": "Eine oder mehrere Tabellen in der Datenbank sind leer. TrackMe muss mindestens einmal auf dme Mobilen  Ger&#228;t gelaufen sein.",
     "database-fail": "Fehler bei Verbindung zur Datenbank. Die Anzeige wurde abgebrochen.",
+    "warning-overview-deprecated": "Das Overview Feature der Google Maps JavaScript API ist veraltet und wurde aus TrackMe Display entfernt.",
     "delete-trip-title": "Strecke konnte nicht gel\u00f6scht werden.",
     "delete-trip-wrong-id": "Die ID existiert nicht",
     "delete-trip-not-owner": "Die Strecke geh\u00f6rt jemanden anderen",
