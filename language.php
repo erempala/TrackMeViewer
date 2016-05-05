@@ -98,6 +98,17 @@
                 $this->full_name = $this->name;
         }
 
+        /**
+         * Normalize the offset by replacing underscores with dashes.
+         *
+         * In strings PHP does not support dashes for array keys (like
+         * "$foo[bar-baz]") but it does support underscores, so this class
+         * supports keys like "bar_baz" in "$foo[bar_baz]".
+         */
+        public static function normalize($offset) {
+            return str_replace("_", "-", $offset);
+        }
+
         public function offsetSet($offset, $value) {
             throw new LogicException("Attempting to change the language definition.");
         }
@@ -107,10 +118,11 @@
         }
 
         public function offsetExists($offset) {
-            return array_key_exists($offset, $this->lang);
+            return array_key_exists(Language::normalize($offset), $this->lang);
         }
 
         public function offsetGet($offset) {
+            $offset = Language::normalize($offset);
             if (array_key_exists($offset, $this->lang))
                 return $this->lang[$offset];
             else
