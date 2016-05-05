@@ -316,11 +316,6 @@ if($public_page == "yes")
      $html .= "<input type=\"hidden\" name=\"storestartdate\" value=\"$storestartdate\">\n";
      $html .= "<input type=\"hidden\" name=\"storeenddate\" value=\"$storeenddate\">\n";
      $html .= "<input type=\"submit\" class=\"buttonlayout\" name=\"user\" value=\"$user_button_text\">\n";
-     //show or hide config button
-     if($allow_custom == "yes")
-           {
-           $html .= "<br><br><br><input type=\"button\" class=\"buttonlayout\" id=\"showcfgbutton\" value=\"$showconfig_button_text\" onClick=\"showInfo()\" >\n";
-           }
      $html .= "</form>\n";
 } else {
                 $finduser = $db->exec_sql("Select * FROM users WHERE ID = ? LIMIT 1", $ID);
@@ -328,14 +323,12 @@ if($public_page == "yes")
        $username = $founduser['username'];
        $html .= "                 $trip_data<br>\n";
        $html .= "                    " . $founduser["username"] . " (<a href=\"index.php?action=logout\">log out</a>)\n";
-       if ($public_page == "no")
-                 {
-                 if($allow_custom == "yes")
-                       {
-                       $html .= "<br><br><input type=\"button\" class=\"buttonlayout\" id=\"showcfgbutton\" value=\"$showconfig_button_text\" onClick=\"showInfo()\" >\n";
-                       }
-       }
 }
+    //show or hide config button
+    if($allow_custom == "yes")
+    {
+        $html .= "<br><br><br><input type=\"button\" class=\"buttonlayout\" id=\"showcfgbutton\" value=\"$lang[config_show]\" onClick=\"showInfo()\" >\n";
+    }
             $html .= "<label for=\"auto\">\n";
             $html .= "    <input type=\"checkbox\" value=\"on\" id=\"auto\" onclick=\"switchAutomatic();\">" . $lang["follow-switch"] . "\n";
             $html .= "</label><br>\n";
