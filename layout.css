@@ -96,12 +96,12 @@ height: 100%;
 
 .loginwindow {
 width: 50%;
-align: center;
 background-color:#444444;
 color:#fff;
 font-family:  Verdana, Serif;
 font-weight:700;
 font-size:10px;
+    text-align: center;
 }
 
 .buttonlayout {
