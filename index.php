@@ -315,7 +315,7 @@ if($public_page == "yes")
      $html .= "<input type=\"hidden\" name=\"custom_view\" value=\"$custom_view\">\n";
      $html .= "<input type=\"hidden\" name=\"storestartdate\" value=\"$storestartdate\">\n";
      $html .= "<input type=\"hidden\" name=\"storeenddate\" value=\"$storeenddate\">\n";
-     $html .= "<input type=\"submit\" class=\"buttonlayout\" name=\"user\" value=\"$user_button_text\">\n";
+     $html .= "<input type=\"submit\" name=\"user\" value=\"$lang[select_user]\">\n";
      $html .= "</form>\n";
 } else {
                 $finduser = $db->exec_sql("Select * FROM users WHERE ID = ? LIMIT 1", $ID);
@@ -327,7 +327,7 @@ if($public_page == "yes")
     //show or hide config button
     if($allow_custom == "yes")
     {
-        $html .= "<br><br><br><input type=\"button\" class=\"buttonlayout\" id=\"showcfgbutton\" value=\"$lang[config_show]\" onClick=\"showInfo()\" >\n";
+        $html .= "<br><br><br><input type=\"button\" id=\"showcfgbutton\" value=\"$lang[config_show]\" onClick=\"showInfo()\" >\n";
     }
             $html .= "<label for=\"auto\">\n";
             $html .= "    <input type=\"checkbox\" value=\"on\" id=\"auto\" onclick=\"switchAutomatic();\">" . $lang["follow-switch"] . "\n";
@@ -581,7 +581,7 @@ if($public_page == "yes")
                     $html .= "                        <input type=\"hidden\" name=\"custom_view\" value=\"$custom_view\">\n";
                     $html .= "                        <input type=\"hidden\" name=\"storestartdate\" value=\"$storestartdate\">\n";
                     $html .= "                        <input type=\"hidden\" name=\"storeenddate\" value=\"$storeenddate\">\n";
-                    $html .= "                        <input type=\"submit\" class=\"buttonlayout\" value=\"$display_button_text\">\n";
+                    $html .= "                        <input type=\"submit\" value=\"$lang[display_button]\">\n";
                     $html .= "                    </form>\n";
                     $html .= "                </div>\n";
 
@@ -747,7 +747,7 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
                 $html .= "                    </tr>\n";
                 $html .= "                    <tr>\n";
                 $html .= "                        <td align=\"right\" colspan=\"2\">\n";
-                $html .= "                            <input class=\"buttonlayout\" type=\"submit\" value=\"$login_button_text\">\n";
+                $html .= "                            <input type=\"submit\" value=\"$lang[login_button]\">\n";
                 $html .= "                        </td>\n";
                 $html .= "                    </tr>\n";
                 $html .= "                </table>\n";

@@ -97,7 +97,7 @@ font-size:10px;
     text-align: center;
 }
 
-.buttonlayout {
+.buttonlayout, input[type="submit"], input[type="button"] {
 width: 150px;
 white-space:nowrap;
 border-spacing:0;
