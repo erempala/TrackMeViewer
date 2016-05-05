@@ -10,6 +10,7 @@
     "warning-overview-deprecated": "Google Maps JavaScript API deprecated the overview feature it has been removed from TrackMe Display.",
     "warning-invalid-viewtype": "The map type '{0}' is unknown, please fix the $googleview configuration variable.",
     "warning-old-viewtype": "Google Maps JavaScript API has changed the map type constants. The $googleview variable is set to '{0}' which corresponds to '{1}' in the new API.",
+    "user-logged-out": "Not logged in",
     "delete-trip-title": "Failed to delete trip.",
     "delete-trip-wrong-id": "No such trip id",
     "delete-trip-not-owner": "You are not the owner of that trip",

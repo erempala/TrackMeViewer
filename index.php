@@ -178,8 +178,6 @@
         $filter            = $_REQUEST["filter"];
         $trip              = preg_replace("/[^a-zA-Z0-9]/", "", $_REQUEST["trip"]);
         $ID                = $_REQUEST["ID"];
-        $username          = $_REQUEST["username"];
-        $password          = $_REQUEST["password"];
         $startday          = preg_replace("/[^0-9 :\-]/", "", $_REQUEST["startday"]);
         $endday            = preg_replace("/[^0-9 :\-]/", "", $_REQUEST["endday"]);
 
@@ -211,27 +209,6 @@
         }
         else
         {
-            if($public_page != "yes")
-            {
-                if ($action == "logout")
-                {
-                    unset($_SESSION['ID']);
-                }
-
-                if(isset($username) && isset($password))
-                {
-                    if (preg_match("/^([a-zA-Z0-9._])+$/", "$_REQUEST[username]"))
-                    {
-                        $login_id = $db->valid_login($username, $password);
-                        if ($login_id >= 0)
-                        {
-                            $_SESSION['ID'] = $login_id;
-                        }
-                    }
-                }
-                $ID = $_SESSION['ID'];
-            }
-
             if(isset($_SESSION['ID']) || $public_page == "yes")
             {
                 $html  = "        <link rel=\"stylesheet\" href=\"calendar-win2k-cold-1.css\" type=\"text/css\">\n";
@@ -286,22 +263,38 @@ $html .= "<div class=\"nav\" id=\"nav\">\n  <!-- astrovue -->";
 $html .= "<div class=\"scroll\">\n";
 
 
+    $users = $db->exec_sql("SELECT * FROM users ORDER BY username")->fetchAll();
+    if (!isset($ID))
+    {
+        $ID = $users[0]["ID"];
+    }
+    foreach ($users as $user)
+    {
+        if (isset($_SESSION["ID"]) && $user["ID"] == $_SESSION["ID"])
+            $loggedIn = $user;
+        if ($ID === $user["ID"])
+            $username = $user["username"];
+    }
+
+
+    if (isset($loggedIn))
+    {
+        $html .= "Logged in: $loggedIn[username] (<a href=\"logout.php\">log out</a>)\n";
+    }
+    else
+    {
+        $html .= "$lang[user_logged_out] (<a href=\"login.php\">log in</a>)\n";
+    }
 if($public_page == "yes")
    {
    $html .= "      <form name=\"form_user\" action=\"index.php\" method=\"post\">\n";
+        $html .= "                 $trip_data<br>\n";
    $html .= "      <select name=\"ID\" class=\"pulldownlayout\">\n";
-                $findusers = $db->exec_sql("Select * FROM users ORDER BY username");
-                while($founduser = $findusers->fetch())
+        foreach ($users as $founduser)
         {
-          if(!isset($ID))
-              {
-              $ID = $founduser["ID"];
-              $trip = "";
-              }
           if($founduser[ID] == $ID)
               {
               $html .= "       <option value=\"$founduser[ID]\"  SELECTED>$founduser[username]</option>\n";
-              $username = $founduser[username];
               } else {
                      $html .= "       <option value=\"$founduser[ID]\">$founduser[username]</option>\n";
                      }
@@ -322,8 +315,8 @@ if($public_page == "yes")
                 $finduser = $db->exec_sql("Select * FROM users WHERE ID = ? LIMIT 1", $ID);
                 $founduser = $finduser->fetch();
        $username = $founduser['username'];
-       $html .= "                 $trip_data<br>\n";
-       $html .= "                    " . $founduser["username"] . " (<a href=\"index.php?action=logout\">log out</a>)\n";
+       $html .= "<br>\n                 $trip_data<br>\n";
+       $html .= "                    $founduser[username]";
 }
     //show or hide config button
     if($allow_custom == "yes")
@@ -709,57 +702,7 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
 			}
             else
             {
-                unset($_SESSION['ID']);
-                $html  = "    </head>\n";
-                $html .= "    <body bgcolor=\"$bgcolor\" OnLoad=\"placeFocus()\">\n";
-                $html .= "        <SCRIPT type=\"text/javascript\">\n";
-                $html .= "            function placeFocus() {\n";
-                $html .= "                if (document.forms.length > 0) {\n";
-                $html .= "                    var field = document.forms[0];\n";
-                $html .= "                    for (i = 0; i < field.length; i++) {\n";
-                $html .= "                        if ((field.elements[i].type == \"text\") || (field.elements[i].type == \"textarea\") || (field.elements[i].type.toString().charAt(0) == \"s\")) {\n";
-                $html .= "                            document.forms[0].elements[i].focus();\n";
-                $html .= "                            break;\n";
-                $html .= "                        }\n";
-                $html .= "                    }\n";
-                $html .= "                }\n";
-                $html .= "            }\n";
-                $html .= "        </script><center><br><br>\n";
-                $html .= "        <div class=\"loginwindow\" align=center>\n";
-                $html .= "            <h2>$title_text (v" . $version_text . ")</h2>\n";
-                $html .= "            $page_private<br>\n"; 				//trackmeIT
-                $html .= "            <br>\n";
-                $html .= "            <br>\n";
-                $html .= "            <form action=\"index.php\" method=\"post\"><br>\n";
-                $html .= "                <table border=\"0\">";
-                $html .= "                    <tr>\n";
-                $html .= "                        <td align=\"right\">\n";
-                $html .= "                            $login_text: \n";
-                $html .= "                        </td>\n";
-                $html .= "                        <td>\n";
-                $html .= "                            <input class=\"textinputfield\" type=\"text\" name=\"username\" size=\"10\">\n";
-                $html .= "                        </td>\n";
-                $html .= "                    </tr>\n";
-                $html .= "                    <tr>\n";
-                $html .= "                        <td align=\"right\">\n";
-                $html .= "                            $password_text: \n";
-                $html .= "                        </td>\n";
-                $html .= "                        <td>\n";
-                $html .= "                            <input class=\"textinputfield\" type=\"password\" name=\"password\" size=\"10\">\n";
-                $html .= "                        </td>\n";
-                $html .= "                    </tr>\n";
-                $html .= "                    <tr>\n";
-                $html .= "                        <td align=\"right\" colspan=\"2\">\n";
-                $html .= "                            <input type=\"submit\" value=\"$lang[login_button]\">\n";
-                $html .= "                        </td>\n";
-                $html .= "                    </tr>\n";
-                $html .= "                </table>\n";
-                $html .= "            </form>\n";
-                $html .= "            <br>\n";
-                $html .= "            <br>\n";
-                $html .= "            <br>\n";
-                $html .= "            <br>\n";
-                $html .= "            <br></div></center>\n";
+                header('Location: ' . $siteroot . "login.php");
             }
         }
 
