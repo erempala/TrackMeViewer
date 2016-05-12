@@ -22,7 +22,7 @@
             global $DBIP, $DBNAME, $DBUSER, $DBPASS;
             $connection = toConnectionArray($DBIP, $DBNAME, $DBUSER, $DBPASS);
         }
-        return new TrackMePDO("mysql:host=$connection[host];dbname=$connection[name]",
+        return new TrackMePDO("mysql:host=$connection[host];dbname=$connection[name];charset=UTF8",
                               $connection["user"], $connection["pass"]);
     }
 
