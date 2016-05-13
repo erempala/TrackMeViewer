@@ -69,6 +69,7 @@ Trip.prototype.appendMarker = function(data, icon)
         document.getElementById("time").innerHTML = this.lastMarker().data.totalTime;
         document.getElementById("pcount").innerHTML = this.pcount;
         document.getElementById("ccount").innerHTML = this.ccount;
+        document.getElementById("avgspeed").innerHTML = toMiles(this.avgSpeed() * 3.6).toFixed(2);
     } else {
         document.getElementById("speed").innerHTML = toMiles(data.speed);
         document.getElementById("alt").innerHTML = toFeet(data.altitude);

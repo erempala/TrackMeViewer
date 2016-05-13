@@ -680,6 +680,7 @@ $rounds      = 1;
                                         $html .= "                                                      $lang[summary_time] <span id=\"time\">TBD</span><br>\n";
                                         $html .= "                                                      $lang[summary_photos] <span id=\"pcount\">TBD</span><br>\n";
                                         $html .= "                                                      $lang[summary_comments] <span id=\"ccount\">TBD</span>\n";
+                                        $html .= "                                                      <div>$lang[balloon_avg_speed]: <span id=\"avgspeed\">TBD</span>&nbsp;$speed_unit</div>\n";
 
 // 2009-05-07 DMR Add Link to download the currently displayed data. -->
                                         $html .= "                                                    <br><br><b><u>Download Data</u></b><br>\n";
