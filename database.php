@@ -56,8 +56,14 @@
             else
                 $args = array_slice($args, 1);
             $stmt = $this->prepare($statement);
-            for ($i = 0; $i < count($args); $i++)
-                $stmt->bindParam($i + 1, $args[$i]);
+            foreach ($args as $name => $value) {
+                if (is_numeric($name)) {
+                    $name++;
+                } else {
+                    $name = ":$name";
+                }
+                $stmt->bindValue($name, $value);
+            }
             if ($stmt->execute())
                 return $stmt;
             else
