@@ -22,11 +22,6 @@
   
   $showbearings = 0;
   
-    if (!isset($_SESSION["ID"]))
-  {
-    echo "<Result>Not Logged in or this is not a private system</Result>";
-    die();
-  }
 
   
   
@@ -38,7 +33,15 @@
   $showbearings = urldecode($_GET["sb"]);
     
   
-    $userid = $_SESSION["ID"];
+    if ($public_page == "yes" && array_key_exists("u", $_GET)) {
+        $userid = $_GET["u"];
+    } elseif (isset($_SESSION["ID"])) {
+        $userid = $_SESSION["ID"];
+    } else {
+    echo "<Result>Not Logged in or this is not a private system</Result>";
+    die();
+    }
+
     $tripid = Exporter::normalize($db, $userid, $_GET);
 
     if($action=="kml")
