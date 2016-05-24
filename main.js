@@ -15,6 +15,8 @@ function Trip(name, user)
 {
     this.name = name;
     this.user = user;
+    this.pcount = 0;
+    this.ccount = 0;
     this.markers = [];
     this.polyline = new google.maps.Polyline({strokeColor: "#000000",
                                               strokeWeight: 3,
@@ -36,6 +38,10 @@ Trip.prototype.appendMarker = function(data, icon)
     var point = new google.maps.LatLng(data.latitude, data.longitude);
     var marker = new google.maps.Marker({position: point,
                                          icon: icon});
+    if (data.photo)
+        this.pcount++;
+    if (data.comments)
+        this.ccount++;
     data.date = fromISO(data.timestamp);
     if (this.markers.length > 0) {
         data.distance = distance(this.lastMarker().getPosition(),
@@ -58,6 +64,15 @@ Trip.prototype.appendMarker = function(data, icon)
     marker.data = data;
     this.markers.push(marker);
     this.polyline.getPath().push(point);
+    document.getElementById("dis").innerHTML = toMiles(this.totalDistance()).toFixed(2);
+    if (document.getElementById("alt") === null) {
+        document.getElementById("time").innerHTML = this.lastMarker().data.totalTime;
+        document.getElementById("pcount").innerHTML = this.pcount;
+        document.getElementById("ccount").innerHTML = this.ccount;
+    } else {
+        document.getElementById("speed").innerHTML = toMiles(data.speed);
+        document.getElementById("alt").innerHTML = toFeet(data.altitude);
+    }
     return marker;
 }
 
@@ -129,10 +144,7 @@ function createMarkerText(data)
     speed = toMiles(data.speed * 3.6);
     avgSpeed = toMiles(data.trip.avgSpeed() * 3.6);
     totalDistance = toMiles(data.distanceToHere);
-    altitude = data.altitude;
-    if (!useMetric) {
-        altitude *= 3.2808399;  // feet = 1 m
-    }
+    altitude = toFeet(data.altitude);
     html += ("<tr><td align='left'><b>" + lang.get('balloon-speed') + ": </b>" + speed.toFixed(2) + " " + speedUnit +
              "</td><td align='right'><b>" + lang.get('balloon-avg-speed') + ": </b>" + avgSpeed.toFixed(2) + " " + speedUnit +
              "</td></tr><tr><td align='left'><b>" + lang.get('balloon-altitude') + ": </b>" + altitude.toFixed(2) + " " + heightUnit +
@@ -186,6 +198,13 @@ function toMiles(distance)
 {
     if (!useMetric)
         distance *= 0.621371192;
+    return distance
+}
+
+function toFeet(distance)
+{
+    if (!useMetric)
+        distance *= 3.2808399;
     return distance
 }
 

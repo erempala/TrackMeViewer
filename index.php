@@ -629,45 +629,15 @@ $html .= "                </FORM> <br>    \n";
                                         "ORDER BY DateOccurred $limit", $params);
 
 $rounds      = 1;
-$total_miles = 0;
-$leg_time    = 0;
-                $pcount=0;
-                $ccount=0;
                 while($row = $result->fetch())
 	{
-		$mph     = $row['Speed'] * 2.2369362920544;
-		$kph     = $row['Speed'] * 3.6;
-		$ft      = $row['Altitude'] * 3.2808399;
-		$meters  = $row['Altitude'];
-                    if ($row['ImageURL'] != '')
-                        $pcount++;
-                    if ($row['Comments'] != '')
-                        $ccount++;
 
                     $endday = $row['DateOccurred'];
 			if($rounds == 1)
 			{
-				$total_time = 0;
-				$display_total_time = gmdate("H:i:s", $total_time);
                         $startday = $endday;
 			}
-			else
-			{
-				$leg_miles        = distance($row['Latitude'], $row['Longitude'], $holdlat, $holdlong, "m");
-				$total_miles      = $total_miles + $leg_miles;
-				$total_kilometers = $total_miles * 1.609344;
-				$leg_time         = $row['DateOccurred'];
-				$total_time       = get_elapsed_time($startday, $leg_time);
-				$total_time       = gmdate("H:i:s", $total_time);
-			}
 		$rounds++;
-		$holdlat  = $row['Latitude'];
-		$holdlong = $row['Longitude'];
-	}
-if(isset($_REQUEST[last_location]))
-	{
-	$pcount=0;
-	$ccount=0;
 	}
 
 				if(isset($_REQUEST[last_location]))   //if we are in live tracking then display this in center
@@ -696,29 +666,20 @@ if(isset($_REQUEST[last_location]))
                $html .= "                       <br><b><u>$tripsummary_title</u></b><br>\n";
 
 
+                                    $unit_suffix = ($units == "metric" ? "metric" : "imperial");
+                                    $distance_unit = $lang["unit-distance-$unit_suffix"];
+                                    $speed_unit = $lang["unit-speed-$unit_suffix"];
+                                    $height_unit = $lang["unit-height-$unit_suffix"];
                                 if(isset($_REQUEST[last_location])) //show last location is on
                                 {
-                        if($units == "metric")
-                        {
-                            $html .= "<b>$speed_balloon_text: </b>" . number_format($kph,2) . " " . $speed_metric_unit_balloon_text . "<br><b>$altitude_balloon_text: </b>" . number_format($meters,2) . " " . $height_metric_unit_balloon_text . "<br><b>$total_distance_balloon_text: </b>" . number_format($total_kilometers,2) . " " . $distance_metric_unit_balloon_text . "";
-                        }
-                        else
-                        {
-                            $html .= "<b>$speed_balloon_text: </b>" . number_format($mph,2) . " " . $speed_imperial_unit_balloon_text . "<br><b>$altitude_balloon_text: </b>" . number_format($ft,2) . " " . $height_imperial_unit_balloon_text . "<br><b>$total_distance_balloon_text: </b>" . number_format($total_miles,2) . " " . $distance_imperial_unit_balloon_text . "";
-                        }                }
+                            $html .= "<b>$lang[balloon_speed]: </b><span id=\"speed\">TBD</span> $speed_unit<br><b>$lang[balloon_altitude]: </b><span id=\"alt\">TBD</span> $height_unit<br><b>$lang[balloon_total_distance]: </b><span id=\"dis\">TBD</span> $distance_unit";
+                                        }
                                 else
                                 {
-                                        if($units == "metric")
-                                        {
-                                                $html .= "$total_distance_balloon_text: " . number_format($total_kilometers,2) . " " . $distance_metric_unit_balloon_text . "<br>";
-                                        }
-                                        else
-                                        {
-                                                $html .= "$total_distance_balloon_text: " . number_format($total_miles,2) . " " . $distance_imperial_unit_balloon_text . "<br>";
-                                        }
-                                        $html .= "                                                      $summary_time $total_time<br>\n";
-                                        $html .= "                                                      $summary_photos $pcount<br>\n";
-                                        $html .= "                                                      $summary_comments $ccount\n";
+                                        $html .= "$lang[balloon_total_distance]: <span id=\"dis\">TBD</span>&nbsp;" . $distance_unit . "<br>";
+                                        $html .= "                                                      $lang[summary_time] <span id=\"time\">TBD</span><br>\n";
+                                        $html .= "                                                      $lang[summary_photos] <span id=\"pcount\">TBD</span><br>\n";
+                                        $html .= "                                                      $lang[summary_comments] <span id=\"ccount\">TBD</span>\n";
 
 // 2009-05-07 DMR Add Link to download the currently displayed data. -->
                                         $html .= "                                                    <br><br><b><u>Download Data</u></b><br>\n";
@@ -1100,31 +1061,6 @@ sa.com/central_eng.php\">Luis Espinosa</a></div>\n";
 
     $db = null;  // Close database
     print $html;
-
-    // Function to calculate distance between points
-    function distance($lat1, $lon1, $lat2, $lon2, $unit)
-    {
-    	if ($lat1 == $lat2 && $lon1 == $lon2) { return 0; }
-      $theta = $lon1 - $lon2;
-      $dist = sin(deg2rad($lat1)) * sin(deg2rad($lat2)) +  cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * cos(deg2rad($theta));
-      $dist = acos($dist);
-      $dist = rad2deg($dist);
-      $miles = $dist * 60 * 1.1515;
-      $unit = strtoupper($unit);
-
-      if ($unit == "K")
-      {
-        return ($miles * 1.609344);
-      }
-      else if ($unit == "N")
-      {
-        return ($miles * 0.8684);
-      }
-      else
-      {
-        return $miles;
-      }
-    }
 
     // Function to convert MySQL dates
     function get_mysql_to_epoch($date)
