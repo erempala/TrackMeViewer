@@ -34,6 +34,7 @@
             } else {
                 $this->assertEquals($values + 1, count($parts));
             }
+            return $parts;
         }
 
         public function setUp()
@@ -92,6 +93,33 @@
         {
             $_GET["a"] = "geticonlist";
             $this->assertResult(self::runRequests(), 0, true);
+        }
+
+        public function testDeletePositionByID() {
+            $this->markTestIncomplete("testing this would remove data, make sure that this will not happen");
+        }
+
+        public function testFindClosestPositionByPosition() {
+            $_GET["a"] = "findclosestpositionbyposition";
+            $_GET["lat"] = "58";
+            $_GET["long"] = "12";
+            $result = self::runRequests();
+            $result = $this->assertResult($result, 0, 3);
+            $this->assertRegExp("/[1-9]\\d*/", $result[1]);
+            // TODO: Verify second value?
+            $this->assertRegExp("/\\d+\\.\\d+/", $result[3]);
+
+            $_GET["u"] = "missing";
+            $this->assertResult(self::runRequests(), 7);
+        }
+
+        public function testGetTripInfo() {
+            $_GET["a"] = "gettripinfo";
+            $result = self::runRequests();
+            $result = $this->assertResult($result, 0, 3);
+            $this->assertRegExp("/\\d+/", $result[1]);
+            $this->assertEquals("0", $result[2]);
+            $this->assertEquals("\n", $result[3]);
         }
 
     }

@@ -1,6 +1,9 @@
 <?php
 
     define("R_OK", 0);
+    define("R_UNSPECIFIED_PARAMETER", 6);
+    define("R_TRIP_MISSING", 7);
+    define("R_TRIP_LOCKED", 8);
 
     require_once("database.php");
 	
@@ -388,8 +391,11 @@
 		}
 		
 		$locked = 0;
-		$result=mysql_query("Select Locked FROM trips A1 INNER JOIN positions A2 ON A2.FK_TRIPS_ID=A1.ID WHERE A2.FK_Users_ID = '$userid' and A2.ID='$positionid'");
-		if ( $row=mysql_fetch_array($result) )
+            $result = $db->exec_sql("SELECT Locked FROM trips " .
+                                    "INNER JOIN positions ON positions.FK_Trips_ID=trips.ID " .
+                                    "WHERE positions.FK_Users_ID=? and positions.ID=?",
+                                    $userid, $positionid);
+            if ($row=$result->fetch())
 		{
 			 $locked = $row['Locked'];			 
 			 if ( $locked == 1 )
@@ -405,12 +411,11 @@
 		}	 	
 		
 			
-		$sql = "DELETE FROM positions WHERE ID='$positionid' AND FK_USERS_ID='$userid'";
+            $db->exec_sql("DELETE FROM positions WHERE ID=? AND FK_USERS_ID=?",
+                          $positionid, $userid);
 						
-		mysql_query($sql);
 		
-		echo "Result:0";
-		die();		
+            return success();
 	}
 	
 
@@ -462,22 +467,16 @@
 		 }
 		 
 		
-		$sql = "SELECT(  DEGREES(     ACOS(        SIN(RADIANS( latitude )) * SIN(RADIANS(".$lat.")) +";
-		$sql.= "COS(RADIANS( latitude )) * COS(RADIANS(".$lat.")) * COS(RADIANS( longitude - ".$long.")) ) * 60 * 1.1515 ";
-		$sql.= ")  ) AS distance,ID, dateoccurred FROM positions WHERE FK_Users_ID = '$userid' order by distance asc limit 0,1";
+            $sql = "SELECT (DEGREES(ACOS(SIN(RADIANS(latitude)) * SIN(RADIANS(:lat)) +";
+            $sql.= "COS(RADIANS(latitude)) * COS(RADIANS(:lat)) * COS(RADIANS(longitude - :long))) * 60 * 1.1515 ";
+            $sql.= ")) AS distance, ID, DateOccurred FROM positions WHERE FK_Users_ID = :user ORDER BY distance ASC LIMIT 0,1";
 					
-		$result=mysql_query($sql);	
-		
-		if ( $row=mysql_fetch_array($result) )
-		{
-			echo "Result:0|".$row['ID']."|".$row['dateoccurred']."|".$row['distance'];
-		}						
-		else
-			echo "Result:7"; // No positions from user found
-			
-		
-
-		die();		
+            $row = $db->exec_sql($sql, array("lat" => $lat, "long" => $long, "user" => $userid))->fetch();
+            if ($row) {
+                return success(array($row["ID"], $row["DateOccurred"], $row["distance"]));
+            } else {
+                return result(R_TRIP_MISSING); // No positions from user found
+            }
 	} 
 	
 	
@@ -580,10 +579,12 @@
 			die();
 		}
 		
-		$result=mysql_query("Select ID,Locked,Comments FROM trips WHERE FK_Users_ID = '$userid' and name='$tripname'");
-		if ( $row=mysql_fetch_array($result) )
+            $result = $db->exec_sql("SELECT ID, Locked, Comments FROM trips " .
+                                    "WHERE FK_Users_ID=? and name=?",
+                                    $userid, $tripname);
+            if ($row=$result->fetch())
 		{
-			 $output.=$row['ID']."|".$row['Locked']."|".$row['Comments']."\n";    		  
+                return success(array($row['ID'], $row['Locked'], "$row[Comments]\n"));
 		}
 		else
 		{
@@ -591,8 +592,6 @@
 				die();					
 		}					
     		
-		echo "Result:0|$output";		
-		die();
 	}
 	
 	if ($action=="gettripfull" || $action=="gettriphighlights")

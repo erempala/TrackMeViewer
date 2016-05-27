@@ -220,7 +220,9 @@ INSERT INTO `positions` VALUES(5343,3,16,NULL,58.339472,12.3642388,0.0,1.0,0.0,'
 INSERT INTO `positions` VALUES(5344,3,NULL,NULL,58.0,13.0,0.0,0.0,NULL,'2015-12-03 16:54:43','0000-00-00 00:00:00',NULL,NULL,NULL,NULL,NULL,NULL);
 
 INSERT INTO `trips` VALUES(15,3,'Hi''s Bars',NULL,0);
-INSERT INTO `trips` VALUES(16,3,'04 Trollhättan',NULL,0);
+INSERT INTO `trips` VALUES(16,3,'Testpositions',NULL,0);
 
+-- This account has no trips and positions
+INSERT INTO `users` VALUES(1,'missing','63abd2c6d9cbde32f451db430ebe6ea7','2015-12-01 12:30:22',1);
 INSERT INTO `users` VALUES(2,'Disabled','63abd2c6d9cbde32f451db430ebe6ea7','2015-12-01 12:30:22',0);
 INSERT INTO `users` VALUES(3,'track','63abd2c6d9cbde32f451db430ebe6ea7','2015-12-01 12:30:22',1);
