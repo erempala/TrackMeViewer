@@ -111,6 +111,11 @@
             $this->markTestIncomplete("testing this could change data");
         }
 
+        public function testDelete() {
+            $this->markTestIncomplete("testing this would remove data, make sure that this will not happen");
+            $_GET["a"] = "delete";
+        }
+
         public function testDeletePositionByID() {
             $this->markTestIncomplete("testing this would remove data, make sure that this will not happen");
         }

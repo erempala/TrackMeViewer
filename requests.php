@@ -311,48 +311,35 @@
 	
 	if($action=="delete")
 	{	
-		 $locked = 0;
-		 $tripid = "";
-		 $result=mysql_query("Select ID,Locked FROM trips WHERE FK_Users_ID = '$userid' and name='$tripname'");
-		 if ( $row=mysql_fetch_array($result) )
-		 {
-		 	 $tripid=$row['ID'];
-			 $locked = $row['Locked'];
-			 
-			 if ( $locked == 1 )
-			 {
-			 		echo "Result:8";	
-			 		die();
-			 }
-		 }
-		 else
-		 {
-		 	  echo "Result:7"; // trip not found.
-				die();					
-		 }	 	
-		
-		if ( $tripname == "<None>" )			
-			$sql = "DELETE FROM positions WHERE FK_Trips_ID is null ";
-		else if ( $tripname != "" )
-			$sql = "DELETE FROM positions WHERE FK_Trips_ID='$tripid' ";
-		else
-			$sql = "DELETE FROM positions WHERE 1=1 ";
-					
-		$sql.= " and FK_Users_ID = '$userid' ";
-
+            $where = array("FK_Users_ID = ?");
+            $params = array($userid);
+            if ($tripname === "<None>") {
+                $where[] = "FK_Trips_ID is NULL";
+            } else {
+                $tripid = test_trip($db, $userid, $tripname);
+                if (!is_numeric($tripid))
+                    return $tripid;
+                $params[] = $tripid;
+                $where[] = "FK_Trips_ID = ?";
+            }
 		$datefrom = urldecode($_GET["df"]);
 		$dateto = urldecode($_GET["dt"]);
 		
-		if ( $datefrom != "" )
-			$sql.=" and DateOccurred>='$datefrom' ";
-		if ( $dateto != "" )
-			$sql.=" and DateOccurred<='$dateto' ";			
+            if ($datefrom != "") {
+                $where[] = "DateOccurred >= ?";
+                $params[] = $datefrom;
+            }
+            if ($dateto != "") {
+                $where[] = "DateOccurred <= ?";
+                $params[] = $dateto;
+            }
+
 			
 						
-		mysql_query($sql);
+            $where = implode(" AND ", $where);
+            $db->exec_sql("DELETE FROM positions WHERE $where", $params);
 		
-		echo "Result:0";
-		die();		
+            return success();
 	} 	
 	
 	if($action=="deletepositionbyid")
