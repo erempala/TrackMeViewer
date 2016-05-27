@@ -95,6 +95,22 @@
             $this->assertResult(self::runRequests(), 0, true);
         }
 
+        public function testUpdatePositionData() {
+            // "updateimageurl" is a synonym, should probably be tested as well
+            $_GET["a"] = "updatepositiondata";
+            // TODO: Verify the different parts
+            // TODO: Test when the trip is missing
+
+            $_GET["tn"] = "Locked";
+            $_GET["id"] = "6000";
+            $_GET["ignorelocking"] = "";
+            assert(!isset($_GET["imageurl"]));
+            assert(!isset($_GET["comments"]));
+            $this->assertResult(self::runRequests(), 8);
+
+            $this->markTestIncomplete("testing this could change data");
+        }
+
         public function testDeletePositionByID() {
             $this->markTestIncomplete("testing this would remove data, make sure that this will not happen");
         }

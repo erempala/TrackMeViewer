@@ -278,60 +278,34 @@
 			$ignorelocking = 0;
 		
 		$locked = 0;
-		$result=mysql_query("Select Locked FROM trips A1 INNER JOIN positions A2 ON A2.FK_TRIPS_ID=A1.ID WHERE A2.FK_Users_ID = '$userid' and A2.ID='$id'");
-		if ( $row=mysql_fetch_array($result) )
-		{
-			 $locked = $row['Locked'];			 
-			 if ( $locked == 1 && $ignorelocking == 0 )
-			 {
-			 		echo "Result:8";	
-			 		die();
-			 }
-		}
-		else
-		{
-			 echo "Result:7"; // trip not found.
-			 die();					
-		}
-		
-		
-		$sql = "Update positions set ";
+            $row = $db->exec_sql("SELECT Locked FROM trips INNER JOIN positions ON positions.FK_Trips_ID=trips.ID WHERE positions.FK_Users_ID = ? AND positions.ID=?", $userid, $id)->fetch();
+            if (!$row) {
+                return result(R_TRIP_MISSING);  // trip not found.
+            } else if ($ignorelocking == 0 && $row['Locked'] == 1) {
+                return result(R_TRIP_LOCKED);
+            }
+            $values = array();
 		
 		if ( isset($_GET["imageurl"]))
 		{		
-			$imageurl = urldecode($_GET["imageurl"]);
-			
-			if ($imageurl != "" )
-			{		
-				$iconid='null';		
-				$result=mysql_query("Select ID FROM icons WHERE name = 'Camera'");
-				if ( $row=mysql_fetch_array($result) )
-							$iconid=$row['ID'];							
-			
-				$sql.=" fk_icons_id=$iconid, imageurl='$imageurl',";			
-			}
-			else
-				$sql.=" imageurl=null,";			
-			
+                $values["ImageURL"] = get_nulled("imageurl");
 	  }
 	  
 	  if ( isset($_GET["comments"]))
 		{				
-			$comments = urldecode($_GET["comments"]);				
-			
-			if ( $comments == "" )
-				$sql.=" comments=null,";							
-			else
-				$sql.=" comments='$comments',";			
-				
+                $values["Comments"] = get_nulled("comments");
 	  }	 
 		 		 	 		 		 
-		$sql.="ID=ID where id=$id AND fk_users_id='$userid'";
-		
-		 		 
-		mysql_query($sql);		 	 
-		echo "Result:0";
-  	die();	
+            $names = "";
+            $parameters = array();
+            foreach ($values as $name => $value) {
+                $names .= "$name = ?";
+                $parameters[] = $value;
+            }
+            $parameters[] = $id;
+            $parameters[] = $userid;
+            $db->exec_sql("UPDATE positions SET $names WHERE ID=? AND FK_Users_ID=?", $parameters);
+            return success();
 	}
 	
 	
@@ -848,6 +822,15 @@
     // Run by default when included/required, unless __norun is set to true
     if (!isset($__norun) || !$__norun) {
         echo run(toConnectionArray($DBIP, $DBNAME, $DBUSER, $DBPASS));
+    }
+
+    function get_nulled($name)
+    {
+        $value = urldecode($_GET[$name]);
+        if ($value !== "")
+            return $value;
+        else
+            return null;
     }
 
     function success($message="")
