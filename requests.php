@@ -432,24 +432,14 @@
 		 	die();
 		 }
 		 
-		$sql = "SELECT ID,dateoccurred FROM positions ";
-		$sql.= "WHERE dateoccurred = (SELECT MIN(dateoccurred) ";
-		$sql.= "FROM positions WHERE ABS(TIMESTAMPDIFF(SECOND,'$date',dateoccurred))= ";
-		$sql.= "(SELECT MIN(ABS(TIMESTAMPDIFF(SECOND,'$date',dateoccurred))) ";
-		$sql.= "FROM positions WHERE FK_USERS_ID='$userid') AND FK_USERS_ID='$userid') ";
-		$sql.= "AND FK_USERS_ID='$userid'";
-	
-		$result=mysql_query($sql);	
-		
-		if ( $row=mysql_fetch_array($result) )
-		{
-			echo "Result:0|".$row['ID']."|".$row['dateoccurred'];
-		}						
-		else
-			echo "Result:7"; // No positions from user found
-
-		
-		die();		
+            $row = $db->exec_sql("SELECT ID, DateOccurred FROM positions WHERE " .
+                                 "ABS(TIMESTAMPDIFF(SECOND,:date,DateOccurred))=(" .
+                                     "SELECT MIN(ABS(TIMESTAMPDIFF(SECOND,:date,DateOccurred))) FROM positions WHERE FK_Users_ID=:user)" .
+                                 " AND FK_Users_ID=:user", array("date" => $date, "user" => $userid))->fetch();
+            if ($row)
+                return success(array($row["ID"], $row["DateOccurred"]));
+            else
+                return result(R_TRIP_MISSING); // No positions from user found
 	} 	
 	
 	

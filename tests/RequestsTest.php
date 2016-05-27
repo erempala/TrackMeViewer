@@ -99,6 +99,18 @@
             $this->markTestIncomplete("testing this would remove data, make sure that this will not happen");
         }
 
+        public function testFindClosestPositionByTime() {
+            $_GET["a"] = "findclosestpositionbytime";
+            $_GET["date"] = "2015-09-02 12:04:00";
+            $result = self::runRequests();
+            $result = $this->assertResult($result, 0, 2);
+            $this->assertRegExp("/[1-9]\\d*/", $result[1]);
+            // TODO: Verify second value?
+
+            $_GET["u"] = "missing";
+            $this->assertResult(self::runRequests(), 7);
+        }
+
         public function testFindClosestPositionByPosition() {
             $_GET["a"] = "findclosestpositionbyposition";
             $_GET["lat"] = "58";
