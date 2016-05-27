@@ -725,37 +725,19 @@
 	
 	if ( $action=="deletetrip" )
 	{		
-		 if ( $tripname == "" )
-		 {
-			echo "Result:6"; // trip not specified
-		 	die();
-		 }
-		 		 
-		 $tripid = "";
-		 $locked = 0;
-		 $result=mysql_query("Select ID, Locked FROM trips WHERE FK_Users_ID = '$userid' and name='$tripname'");
-		 if ( $row=mysql_fetch_array($result) )
-		 {
-			 $tripid=$row['ID'];		
-			 $locked = $row['Locked'];
-			 
-			 if ( $locked == 1 )
-			 {
-			 		echo "Result:8";	
-			 		die();
-			 }
-			 
-			 mysql_query("delete from positions where fk_trips_id='$tripid' AND FK_Users_ID = '$userid'");
-			 mysql_query("delete from trips where id='$tripid' AND FK_Users_ID = '$userid'");			 			 
-			 
-			 echo "Result:0";
-			 die();			 
-		 }
-		 else
-		 {
-		 	  echo "Result:7"; // trip not found.
-				die();					
-		 }	 		
+            $tripid = test_trip($db, $userid, $tripname);
+            if (!is_numeric($tripid))
+                return $tripid;
+            try {
+                $db->beginTransaction();
+                $db->exec_sql("DELETE FROM positions WHERE FK_Trips_ID=? AND FK_Users_ID = ?",
+                              $tripid, $userid);
+                $db->exec_sql("DELETE FROM trips WHERE ID=? AND FK_Users_ID = ?",
+                              $tripid, $userid);
+            } catch (Exception $e) {
+                $db->rollback();
+            }
+            return success();
 	}
 	
 	if ( $action=="addtrip" )
@@ -822,6 +804,36 @@
     // Run by default when included/required, unless __norun is set to true
     if (!isset($__norun) || !$__norun) {
         echo run(toConnectionArray($DBIP, $DBNAME, $DBUSER, $DBPASS));
+    }
+
+    function get_trip($db, $userid, $name, $allow_locked=false)
+    {
+        $result = $db->exec_sql("SELECT ID, Locked FROM trips WHERE FK_Users_ID = ? and Name = ?",
+                                $userid, $name);
+        if ($row=$result->fetch()) {
+            if (!$allow_locked && $row['Locked'] == 1)
+                return false;
+            else
+                return $row['ID'];
+        } else {
+            return null;
+        }
+    }
+
+
+    function test_trip($db, $userid, $name, $allow_locked=false)
+    {
+        if (!$name) {
+            return result(R_UNSPECIFIED_PARAMETER); // trip not specified
+        }
+        $tripid = get_trip($db, $userid, $name, $allow_locked);
+        if ($tripid === false) {
+            return result(R_TRIP_LOCKED);
+        } elseif (is_null($tripid)) {
+            return result(R_TRIP_MISSING); // trip not found.
+        } else {
+            return $tripid;
+        }
     }
 
     function get_nulled($name)

@@ -150,5 +150,9 @@
             $this->assertEquals("\n", $result[3]);
         }
 
+        public function testDeleteTrip() {
+            $this->markTestIncomplete("testing this would remove data, make sure that this will not happen");
+        }
+
     }
 ?>
