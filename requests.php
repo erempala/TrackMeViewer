@@ -547,33 +547,17 @@
 	
 	if ($action=="gettripfull" || $action=="gettriphighlights")
 	{
-		if ( $tripname == "" )
-		{
-			echo "Result:6"; // trip not specified
-			die();
-		}
-		
-		$tripid = "";
-		$result=mysql_query("Select ID FROM trips WHERE FK_Users_ID = '$userid' and name='$tripname'");
-		if ( $row=mysql_fetch_array($result) )
-		{
-			 $tripid=$row['ID'];					 		
-		}
-		else
-		{
-		 	  echo "Result:7"; // trip not found.
-				die();					
-		}		
+            $tripid = test_trip($db, $userid, $tripname, true);
+            if (!is_numeric($tripid))
+                return $tripid;
 				
     $output = ""; 		
-    $result = mysql_query("select latitude,longitude,ImageURL,Comments,A2.URL IconURL, dateoccurred, A1.ID, A1.Altitude, A1.Speed, A1.Angle  from positions A1 left join icons A2 on A1.FK_Icons_ID=A2.ID where fk_trips_id='$tripid' order by dateoccurred");
-    while( $row=mysql_fetch_array($result) )
-    {
-    	$output.=$row['latitude']."|".$row['longitude']."|".$row['ImageURL']."|".$row['Comments']."|".$row['IconURL']."|".$row['dateoccurred']."|".$row['ID']."|".$row['Altitude']."|".$row['Speed']."|".$row['Angle']."\n";    		  
-    }
-    		
-		echo "Result:0|$output";		
-		die();
+            $result = $db->exec_sql("SELECT Latitude, Longitude, ImageURL, Comments, icons.URL IconURL, DateOccurred, positions.ID, Altitude, Speed, Angle " .
+                                    "FROM positions LEFT JOIN icons on positions.FK_Icons_ID=icons.ID WHERE FK_Trips_ID=? ORDER BY DateOccurred", $tripid);
+            while ($row = $result->fetch()) {
+                $output .= "$row[Latitude]|$row[Longitude]|$row[ImageURL]|$row[Comments]|$row[IconURL]|$row[DateOccurred]|$row[ID]|$row[Altitude]|$row[Speed]|$row[Angle]\n";
+            }
+            return success($output);
 	}
 	
 		

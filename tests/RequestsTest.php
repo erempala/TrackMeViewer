@@ -26,8 +26,16 @@
             return run(self::$connection);
         }
 
-        private function assertResult($result, $code=0, $values=0) {
-            $parts = explode("|", $result);
+        private function assertResult($result, $code=0, $values=0, $splitNewline=false) {
+            if ($splitNewline) {
+                $lines = explode("\n", $result);
+            } else {
+                $lines = array($result);
+            }
+            $parts = array();
+            foreach ($lines as $line) {
+                $parts = array_merge($parts, explode("|", $line));
+            }
             $this->assertEquals("Result:$code", $parts[0]);
             if ($values === true) {
                 $this->assertGreaterThan(1, count($parts));
@@ -153,6 +161,29 @@
             $this->assertRegExp("/\\d+/", $result[1]);
             $this->assertEquals("0", $result[2]);
             $this->assertEquals("\n", $result[3]);
+        }
+
+        public function testGetTripFull() {
+            // "gettriphighlights" is a synonym, should probably be tested as well
+            $_GET["a"] = "gettripfull";
+            $result = $this->assertResult(self::runRequests(), 0, true, true);
+            // It returns 10 elements per marker, so it should be a multiple of 10
+            // +1 for the header and +1 that there is an empty string at the end because it ends with \n
+            $this->assertEquals(2, count($result) % 10);
+            // The two +1 are the reason why it begins at 1 and has count - 1
+            for ($i = 1; $i < count($result) - 1; $i += 10) {
+                $this->assertRegExp("/\\d+\\.\\d+/", $result[$i]);
+                $this->assertRegExp("/\\d+\\.\\d+/", $result[$i + 1]);
+                $this->assertRegExp("/\\d+/", $result[$i + 6]);
+                // TODO: Verify the different parts more closely?
+            }
+            $this->assertEquals("", $result[count($result) - 1]);
+
+            $_GET["tn"] = "Missing";
+            $this->assertResult(self::runRequests(), 7);
+
+            $_GET["tn"] = "Locked";
+            $this->assertResult(self::runRequests(), 0, 10);
         }
 
         public function testDeleteTrip() {
