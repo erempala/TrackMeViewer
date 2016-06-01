@@ -37,6 +37,8 @@
             $this->assertEquals($no_parameters, $as_parameters);
             $as_list = $this->db->exec_sql("SELECT username FROM users WHERE username=?", array("track"))->fetchAll();
             $this->assertEquals($as_parameters, $as_list);
+            $as_dict = $this->db->exec_sql("SELECT username FROM users WHERE username=:name", array("name" => "track"))->fetchAll();
+            $this->assertEquals($as_list, $as_dict);
         }
 
     }
