@@ -246,9 +246,10 @@
 $html .= "<BODY>\n";
 $html .= "            <script type=\"text/javascript\">\n";
 
-$html .= "            		function showInfo()\n";
+$html .= "            		function showInfo() { showBox('configsection', 'showcfgbutton'); }\n";
+$html .= "            		function showBox(id, button)\n";
 $html .= "            		{\n";
-$html .= "            		var elem = document.getElementById('configsection');\n";
+$html .= "          elem = document.getElementById(id);\n";
 $html .= "            			if(elem.style.display == \"none\")\n";
 $html .= "            			{\n";
 $html .= "            			elem.style.display=\"inline\";\n";
@@ -502,23 +503,25 @@ if($public_page == "yes")
 
 // 2009-05-07 DMR Add Link to download the currently displayed data. -->
                                         $html .= "                                                    <br><br><b><u>Download Data</u></b><br>\n";
-                                        // Required Params
-// Removing from Export code                                $ExportOptions = "&db=1234567";
-// Use the Cookie soe we don't display it in the URL        $ExportOptions .= "&u=" . $username;
-// Use the Cookie soe we don't display it in the URL        $ExportOptions .= "&p=" . $password;
-                                        //
-                                        $ExportOptions =  "&u=$ID";
-                                        $ExportOptions .= "&t=$trip";
-                                        $ExportOptions .= "&df=" . $startday;
-                                        $ExportOptions .= "&dt=" . $endday;
-                                        $ExportOptions .= "&sb=" . $storeshowbearings; //0=no 1=Yes
-                                        $html .= "                                                    <a href=\"download.php?a=kml" . $ExportOptions . "\">KML Format</a><br>\n";
-                                        $html .= "                                                    <a href=\"download.php?a=gpx" . $ExportOptions . "\">GPX Format</a><br>\n";
+                                        $html .= "<a href=\"#\" onClick=\"showBox('downloadsection', null); return false;\">Download</a>";
 
 // 2009-05-07 DMR Add Link to download the currently displayed data. <--
 
 
                     $html .= "</div></div>\n";
+                    $html .= "<div id=\"downloadsection\" style=\"display:none;\">\n";
+                    $html .= "<form action=\"download.php\">";
+                    $html .= "<div><input type=\"radio\" id=\"kml\" name=\"action\" value=\"kml\" checked=\"checked\"><label for=\"kml\">KML</label></div>";
+                    $html .= "<div><input type=\"radio\" id=\"gpx\" name=\"action\" value=\"gpx\"><label for=\"gpx\">GPX</label></div>";
+                    $html .= "<div><input type=\"checkbox\" id=\"bearings\" name=\"sb\"" . get_selected($storeshowbearings, "checked") . "><label for=\"bearings\">Show bearings</label></div>";
+                    $html .= "<div><input type=\"checkbox\" id=\"recentfirst\" name=\"desc\"><label for=\"recentfirst\">Most recent marker first</label></div>";
+                    $html .= "                        <input type=\"hidden\" name=\"t\" value=\"$trip\">\n";
+                    $html .= "                        <input type=\"hidden\" name=\"u\" value=\"$ID\">\n";
+                    $html .= "                        <input type=\"hidden\" name=\"df\" value=\"$startday\">\n";
+                    $html .= "                        <input type=\"hidden\" name=\"dt\" value=\"$endday\">\n";
+                    $html .= "                        <input type=\"submit\" value=\"Download\">\n"; //TODO: i18n
+                    $html .= "</form>";
+                    $html .= "</div>";
                     $html .= "                <div id=\"configsection\" style=\"display:none;\">\n";
                     $html .= "                    $display_options_title_text:\n";
 

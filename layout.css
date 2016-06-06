@@ -33,7 +33,7 @@ overflow:auto;
 background-color:#666;
 z-index:2;
 	}
-#configsection {
+#configsection, #downloadsection {
 position: 	absolute;
 top	:	40%;
 left	:	40%;

@@ -53,9 +53,9 @@
 
         public function testConstructorValid()
         {
-            $this->assertExporter(self::TID, self::TRIPNAME, new Exporter($this->db, self::UID, self::TID, "", ""));
-            $this->assertExporter(true, "All", new Exporter($this->db, self::UID, true, "", ""));
-            $this->assertExporter(null, "None", new Exporter($this->db, self::UID, null, "", ""));
+            $this->assertExporter(self::TID, self::TRIPNAME, new Exporter($this->db, self::UID, self::TID, "", "", true));
+            $this->assertExporter(true, "All", new Exporter($this->db, self::UID, true, "", "", true));
+            $this->assertExporter(null, "None", new Exporter($this->db, self::UID, null, "", "", true));
         }
 
     }

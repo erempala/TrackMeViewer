@@ -31,6 +31,7 @@
   $datefrom = urldecode($_GET["df"]);
   $dateto = urldecode($_GET["dt"]);
   $showbearings = urldecode($_GET["sb"]);
+  $recent_first = $_GET["desc"] ? true : false;
     
   
     if ($public_page == "yes" && array_key_exists("u", $_GET)) {
@@ -47,12 +48,12 @@
     if($action=="kml")
     {
         require_once("exporter/kml.php");
-        $exporter = new KMLExporter($db, $userid, $tripid, $datefrom, $dateto);
+        $exporter = new KMLExporter($db, $userid, $tripid, $datefrom, $dateto, $recent_first);
     }
     else if ($action = "gpx")
     {
         require_once("exporter/gpx.php");
-        $exporter = new GPXExporter($db, $userid, $tripid, $datefrom, $dateto);
+        $exporter = new GPXExporter($db, $userid, $tripid, $datefrom, $dateto, $recent_first);
     }
     else
     {

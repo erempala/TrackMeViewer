@@ -44,7 +44,7 @@
                 $href = $currentpath . "/arrow$angle.png";
                 $customicons .= $this->create_icon($id, $href, true);
             }
-            $result = $this->exec_sql(true);
+            $result = $this->exec_sql();
             $result = $result->fetchAll();
   
     $header = "<?xml version='1.0' encoding='utf-8' ?>";

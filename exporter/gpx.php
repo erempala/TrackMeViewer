@@ -7,7 +7,7 @@
 
         public function export($showbearings)
         {
-            $result = $this->exec_sql(false);
+            $result = $this->exec_sql();
 
     $n=0;
     $bounds_lat_min = 0;

@@ -3,7 +3,7 @@
     class Exporter
     {
 
-        public function __construct($db, $userid, $tripid, $datefrom, $dateto)
+        public function __construct($db, $userid, $tripid, $datefrom, $dateto, $recent_first)
         {
             $this->db = $db;
             $this->datefrom = $datefrom;
@@ -32,9 +32,10 @@
             $this->userid = $userid;
             $this->username = $this->db->exec_sql("SELECT `username` FROM `users` WHERE `ID` = ?",
                                                   $this->userid)->fetchColumn();
+            $this->recent_first = $recent_first;
         }
 
-        protected function exec_sql($ascending)
+        protected function exec_sql()
         {
             $params = array();
             $cond = " WHERE positions.FK_Users_ID = ?";
@@ -59,10 +60,10 @@
                 $params[] = $this->dateto;
             }
             $cond .= " ORDER BY DateOccurred ";
-            if ($ascending)
-                $cond .= "ASC";
-            else
+            if ($this->recent_first)
                 $cond .= "DESC";
+            else
+                $cond .= "ASC";
             $sql = "SELECT DateOccurred, Latitude, Longitude, Speed, Altitude, FK_Icons_ID, trips.Name, positions.Comments, positions.ImageURL, positions.Angle, positions.SignalStrength, positions.SignalStrengthMax, positions.SignalStrengthMin, positions.BatteryStatus FROM positions ";
             return $this->db->exec_sql($sql . $cond, $params);
         }
